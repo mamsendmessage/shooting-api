@@ -51,7 +51,6 @@ class Lanemplementation {
 
   static async GetLanesByState(pSatet) {
     try {
-      Ticke
       const tTodayTickets = Ticketmplementation.GetTodayTickets();
       const tActiveTicket = tTodayTickets.filter((item)=>item.State == pSatet);
       const tLaneIds = tActiveTicket.map((item) => item.LaneId);

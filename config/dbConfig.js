@@ -2,8 +2,8 @@
 
 const config = {
   user: "sa",
-  password: "P@ssw0rd",
-  server: 'DESKTOP-5O3CPQ4\\SQLEXPRESS',
+  password: "sedco@123",
+  server: 'localhost',
   database: "ShootingAppDB",
   options: {
     encrypt: true, // For Azure SQL Database

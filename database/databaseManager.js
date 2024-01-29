@@ -7,18 +7,7 @@ class DatabaseManager {
 
   static async Initialize() {
     try {
-      const poolConfig = {
-        user: config.user,
-        password: config.password,
-        server: config.server,
-        database: config.database,
-        options: {
-          encrypt: true, // for encrypted connections
-        },
-      };
-      poolConfig.server='DESKTOP-5O3CPQ4\\SQLEXPRESS'
-      console.log(poolConfig.server)
-      DatabaseManager.pool = await new sql.ConnectionPool(poolConfig).connect();
+      DatabaseManager.pool = await new sql.ConnectionPool(config).connect();
       return Constant.SUCCESS;
     } catch (error) {
       LoggerService.Log(error);
