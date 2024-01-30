@@ -51,10 +51,10 @@ class Lanemplementation {
 
   static async GetLanesByState(pSatet) {
     try {
-      const tTodayTickets = Ticketmplementation.GetTodayTickets();
+      const tTodayTickets = await Ticketmplementation.GetTodayTickets();
       const tActiveTicket = tTodayTickets.filter((item)=>item.State == pSatet);
-      const tLaneIds = tActiveTicket.map((item) => item.LaneId);
-      const tLanes = CacheService.cache.lanes.filter((item) => tLaneIds.findIndex((item.ID) > 0));
+      const tLaneIds = tActiveTicket.map((item) => item.LaneId);      
+      const tLanes = CacheService.cache.lanes.filter((item) => tLaneIds.indexOf(item.ID) !== -1);
       return tLanes;
     } catch (error) {
       LoggerService.Log(error);

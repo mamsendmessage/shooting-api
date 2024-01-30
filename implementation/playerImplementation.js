@@ -62,10 +62,8 @@ class PlayerImplementation {
 
   static async GetTodayPlayers() {
     try {
-      const tTodayTickets = Ticketmplementation.GetTodayTickets();
-      const tUserIds = tTodayTickets.map((item) => item.UserId);
-      const tPlayers = CacheService.cache.players.filter((item) => tUserIds.indexOf(item.id) === -1);
-      return tPlayers;
+      const tTodaytPlayers = await Ticketmplementation.GetTodayTickets();
+      return tTodaytPlayers;
     } catch (error) {
       LoggerService.Log(error);
       return undefined;
