@@ -3,7 +3,7 @@ const Constant = require("../models/Constant");
 const LoggerService = require("../services/LoggerService");
 const Ticket = require("../models/Ticket");
 const CacheService = require("../services/CacheService");
-const CommonMethods = require("../models/CommonMethods");
+const X_TodayPlayer = require("../models/X_TodayPlayer");
 
 class Ticketmplementation {
 
@@ -16,7 +16,7 @@ class Ticketmplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tTicket = tDateSet[index];
-          tTickets.push(new Ticket(tTicket.ID, tTicket.UserId, tTicket.LaneId, tTicket.GameTypeId, tTicket.PlayerLevelId, tTicket.SesstionTimeId, tTicket.State, tTicket.CreationDate, tTicket.LastModificationDate));
+          tTickets.push(new Ticket(tTicket.ID, tTicket.UserId, tTicket.LaneId, tTicket.GameTypeId, tTicket.PlayerLevelId, tTicket.SesstionTimeId, tTicket.State, tTicket.TicketType, tTicket.UserType, tTicket.CreationDate, tTicket.LastModificationDate));
         }
       }
 
@@ -40,27 +40,6 @@ class Ticketmplementation {
       return undefined;
     }
   }
-
-  // static async GetTicketByIDFromDB(ID) {
-  //   try {
-  //     const tTickets = [];
-  //     const params = [{ name: "ID", value: ID }];
-  //     const tDateSet = await DatabaseManager.ExecuteQuery(
-  //       "SELECT * FROM [Ticket] WHERE [ID] = @ID",
-  //       params
-  //     );
-  //     if (tDateSet) {
-  //       for (let index = 0; index < tDateSet.length; index++) {
-  //         const tTicket = tDateSet[index];
-  //         tTickets.push(new Ticket(tTicket.ID, tTicket.UserId, tTicket.GameTypeId, tTicket.PlayerLevelId, tTicket.SesstionTimeId, tTicket.State, tTicket.CreationDate, tTicket.LastModificationDate));
-  //       }
-  //     }
-  //     return tTickets[0];
-  //   } catch (error) {
-  //     LoggerService.Log(error);
-  //     return undefined;
-  //   }
-  // }
 
   static GetTicketByID(ID) {
     try {
@@ -99,30 +78,20 @@ class Ticketmplementation {
     }
   }
 
-  // static async GetTicketByState(pState) {
-  //   try {
-  //     const tTickets = [];
-  //     const params = [{ name: "State", value: pState }];
-  //     const tDateSet = await DatabaseManager.ExecuteQuery(
-  //       "SELECT * FROM [Ticket] WHERE [State] = @State",
-  //       params
-  //     );
-  //     if (tDateSet) {
-  //       for (let index = 0; index < tDateSet.length; index++) {
-  //         const tTicket = tDateSet[index];
-  //         tTickets.push(new Ticket(tTicket.ID, tTicket.UserId, tTicket.GameTypeId, tTicket.PlayerLevelId, tTicket.SesstionTimeId, tTicket.State, tTicket.CreationDate, tTicket.LastModificationDate));
-  //       }
-  //     }
-  //     return tTickets;
-  //   } catch (error) {
-  //     LoggerService.Log(error);
-  //   }
-  // }
 
-  static GetTodayTickets() {
+  static async GetTodayTickets() {
     try {
-      const tTickets = CacheService.cache.tickets.filter((item) => CommonMethods.isToday(item.CreationDate));
-      return tTickets;
+      const tPlayers = [];
+      const tDateSet = await DatabaseManager.ExecuteQuery(
+        "SELECT * FROM X_TodayPlayers"
+      );
+      if (tDateSet) {
+        for (let index = 0; index < tDateSet.length; index++) {
+          const tData = tDateSet[index];
+          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State,tData.TicketType,tData.UserType,tData.LaneId, tData.CreationDate));
+        }
+      }
+      return tPlayers;
     } catch (error) {
       LoggerService.Log(error);
       return undefined;
@@ -131,7 +100,7 @@ class Ticketmplementation {
 
   static async AddTicket(ticket) {
     try {
-      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SesstionTimeId, ticket.State, new Date(), new Date())
+      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SesstionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
       const params = [
         { name: "UserId", value: tTicket.UserId },
         { name: "LaneId", value: tTicket.LaneId },
@@ -139,12 +108,14 @@ class Ticketmplementation {
         { name: "PlayerLevelId", value: tTicket.PlayerLevelId },
         { name: "SesstionTimeId", value: tTicket.SesstionTimeId },
         { name: "State", value: tTicket.State },
+        { name: "TicketType", value: tTicket.TicketType },
+        { name: "UserType", value: tTicket.UserType },
         { name: "CreationDate", value: tTicket.CreationDate },
         { name: "LastModificationDate", value: tTicket.LastModificationDate },
       ];
       const tID = await DatabaseManager.ExecuteNonQuery(
         "INSERT INTO [Ticket] ([UserId],[LaneId],[GameTypeId],[PlayerLevelId],[SesstionTimeId],[State],[CreationDate],[LastModificationDate]) OUTPUT Inserted.ID VALUES " +
-        "(@UserId, @LaneId,@GameTypeId, @PlayerLevelId, @SesstionTimeId, @State, @CreationDate, @LastModificationDate)",
+        "(@UserId, @LaneId,@GameTypeId, @PlayerLevelId, @SesstionTimeId, @State,[UserType] = @UserType, [TicketType] = @TicketType, @CreationDate, @LastModificationDate)",
         params
       );
       let tResult;
@@ -164,7 +135,7 @@ class Ticketmplementation {
 
   static async UpdateTicket(ticket) {
     try {
-      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SesstionTimeId, ticket.State, ticket.CreationDate, new Date())
+      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SesstionTimeId, ticket.State, ticket.TicketType, ticket.UserType, ticket.CreationDate, new Date())
       const params = [
         { name: "UserId", value: tTicket.UserId },
         { name: "LaneId", value: tTicket.LaneId },
@@ -172,11 +143,13 @@ class Ticketmplementation {
         { name: "SesstionTimeId", value: tTicket.SesstionTimeId },
         { name: "State", value: tTicket.State },
         { name: "LastModificationDate", value: tTicket.LastModificationDate },
+        { name: "TicketType", value: tTicket.TicketType },
+        { name: "UserType", value: tTicket.UserType },
         { name: "ID", value: tTicket.ID },
       ];
       const tResult = await DatabaseManager.ExecuteNonQuery(
         "UPDATE [Ticket] SET [UserId] = @UserId, [LaneId] = @LaneId, [GameTypeId] = @GameTypeId, " +
-        "[SesstionTimeId] = @SesstionTimeId, [State] = @State, [LastModificationDate] = @LastModificationDate WHERE [ID] = @ID",
+        "[SesstionTimeId] = @SesstionTimeId, [State] = @State,[UserType] = @UserType, [TicketType] = @TicketType, [LastModificationDate] = @LastModificationDate WHERE [ID] = @ID",
         params
       );
       if (tResult == 0) {
@@ -196,7 +169,7 @@ class Ticketmplementation {
       const tResult = await DatabaseManager.ExecuteNonQuery(
         "DELETE FROM [Ticket] WHERE [ID] = @ID",
         params
-      );W
+      ); W
       if (tResult == 0) {
         CacheService.cache.tickets = CacheService.cache.tickets.filter((item) => item.ID != ID);
       }

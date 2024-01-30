@@ -53,3 +53,9 @@ CREATE TABLE [dbo].[Ticket]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [U
 	FOREIGN KEY (SessionTimeId) REFERENCES SessionTime(ID)
 
 	)
+
+CREATE VIEW [X_TodayPlayers] AS SELECT [Player].[ID] As UserId,[Player].[Photo],[Player].[Name],[Ticket].[CreationDate],[Ticket].[State],[PlayerLevel].[Value] AS PlayerLevel,[GameType].[Name] as GameType, [Ticket].[TicketType], [Ticket].[UserType] , [Ticket].[LaneId] FROM Ticket
+JOIN [Player] ON [Ticket].UserId = [Player].[ID]
+JOIN [PlayerLevel] ON [PlayerLevel].[ID] = [Ticket].[PlayerLevelId]
+JOIN [GameType] ON [Ticket].[GameTypeId] = [GameType].[ID] 
+WHERE CONVERT(varchar(10), [Ticket].[CreationDate], 102)  = CONVERT(varchar(10), getdate(), 102)
