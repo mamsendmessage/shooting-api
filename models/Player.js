@@ -7,7 +7,7 @@ class Player {
         this.NationalityId = NationalityId;
         this.Age = Age;
         this.MobileNumber = MobileNumber;
-        this.Photo = Photo;
+        this.Photo = Photo && Photo.length > 0 ? Photo : null;
         this.CreationDate = toDateFromDB(CreationDate);
     }
 }

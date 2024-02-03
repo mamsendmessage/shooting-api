@@ -44,17 +44,43 @@ CREATE TABLE [dbo].[Player]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [N
 GO
 
 CREATE TABLE [dbo].[Ticket]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [UserId] [bigint] NOT NULL, [LaneId] [bigint] NOT NULL,[GameTypeId] [bigint] NOT NULL,[PlayerLevelId] [bigint] NOT NULL,
-	[SessionTimeId] [bigint] NOT NULL,[State] [int] NOT NULL, [Ticket].[TicketType] [int] NOT NULL, [Ticket].[UserType] [int] NOT NULL, [CreationDate] [datetime] NOT NULL,[LastModificationDate] [datetime] NULL
+	[SessionTimeId] [bigint] NOT NULL,[State] [int] NOT NULL, [TicketType] [int] NOT NULL, [UserType] [int] NOT NULL, [CreationDate] [datetime] NOT NULL,[LastModificationDate] [datetime] NULL
 
-	FOREIGN KEY (UserId) REFERENCES [User](ID),
+	FOREIGN KEY (UserId) REFERENCES [Player](ID),
 	FOREIGN KEY (LaneId) REFERENCES Lane(ID),
 	FOREIGN KEY (GameTypeId) REFERENCES GameType(ID),
 	FOREIGN KEY (PlayerLevelId) REFERENCES PlayerLevel(ID),
 	FOREIGN KEY (SessionTimeId) REFERENCES SessionTime(ID)
 	)
-
-CREATE VIEW [X_TodayPlayers] AS SELECT [Player].[ID] As UserId,[Player].[Photo],[Player].[Name],[Ticket].[CreationDate],[Ticket].[State],[PlayerLevel].[Value] AS PlayerLevel,[GameType].[Name] as GameType, [Ticket].[TicketType], [Ticket].[UserType] , [Ticket].[LaneId] FROM Ticket
+GO
+CREATE VIEW [X_TodayPlayers] AS SELECT 
+[Player].[ID] As UserId,
+[Ticket].[ID] As TicketId,
+[Player].[Photo],
+[Player].[Name],
+[Ticket].[CreationDate],
+[Ticket].[State],
+[PlayerLevel].[Name] AS PlayerLevel,
+[GameType].[Name] as GameType,
+[Ticket].[TicketType],
+[Ticket].[UserType],
+[Ticket].[LaneId] 
+FROM Ticket
 JOIN [Player] ON [Ticket].UserId = [Player].[ID]
 JOIN [PlayerLevel] ON [PlayerLevel].[ID] = [Ticket].[PlayerLevelId]
 JOIN [GameType] ON [Ticket].[GameTypeId] = [GameType].[ID] 
 WHERE CONVERT(varchar(10), [Ticket].[CreationDate], 102)  = CONVERT(varchar(10), getdate(), 102)
+
+CREATE TABLE [Configuration] (
+	ID bigint Primary KEY Identity,
+	[Type] int not null UNIQUE,
+	TimePerShot int not null,
+	TimeToRefill int not null,
+	NumberOfSkeets int not null,  
+	Config VARCHAR(MAX) not null
+	)
+
+CREATE TABLE [Skeet](
+	ID bigint Primary KEY Identity,
+	[Name] Varchar(250) not null UNIQUE,
+)

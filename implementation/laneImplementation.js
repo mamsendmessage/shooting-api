@@ -80,7 +80,7 @@ class Lanemplementation {
         { name: "CreationDate", value: tLane.CreationDate },
       ];
       const tID = await DatabaseManager.ExecuteNonQuery(
-        "INSERT INTO [Lane] ([Name],[Number],[CreationDate]) OUTPUT Inserted.ID VALUES (@Name, @Number, @CreationDate)",
+        "INSERT INTO [Lane] ([Name],[Number],[CreationDate]) OUTPUT Inserted.ID VALUES (@Name, @Number, GETDATE())",
         params
       );
       let tResult;

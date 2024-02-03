@@ -14,9 +14,10 @@ class DatabaseManager {
       return Constant.ERROR;
     }
   }
-  static async ExecuteQuery(pQuery, params = []) {
+
+  static async ExecuteQuery(pQuery, params = [], transaction = null) {
     try {
-      const request = DatabaseManager.pool.request();
+      const request = transaction ? new sql.Request(transaction) : DatabaseManager.pool.request();
       // Use a prepared statement to avoid SQL injection
       for (const param of params) {
         request.input(param.name, param.value);
@@ -29,14 +30,16 @@ class DatabaseManager {
     }
   }
 
-
-
-  static async ExecuteNonQuery(pQuery, params = []) {
+  static async ExecuteNonQuery(pQuery, params = [], transaction = null) {
     try {
-      const request = DatabaseManager.pool.request();
+      const request = transaction ? new sql.Request(transaction) : DatabaseManager.pool.request();
       // Use a prepared statement to avoid SQL injection
       for (const param of params) {
-        request.input(param.name, param.value);
+        if (param.isDate) {
+          request.input(param.name, sql.DateTime, param.value);
+        } else {
+          request.input(param.name, param.value);
+        }
       }
       const result = await request.query(pQuery);
       if (result.rowsAffected > 0) {
@@ -49,6 +52,33 @@ class DatabaseManager {
     } catch (error) {
       LoggerService.Log(error);
       return Constant.ERROR;
+    }
+  }
+
+  static async BeginTransaction() {
+    try {
+      const transaction = new sql.Transaction(DatabaseManager.pool);
+      await transaction.begin();
+      return transaction;
+    } catch (error) {
+      LoggerService.Log(error);
+      return null;
+    }
+  }
+
+  static async CommitTransaction(transaction) {
+    try {
+      await transaction.commit();
+    } catch (error) {
+      LoggerService.Log(error);
+    }
+  }
+
+  static async RollbackTransaction(transaction) {
+    try {
+      await transaction.rollback();
+    } catch (error) {
+      LoggerService.Log(error);
     }
   }
 

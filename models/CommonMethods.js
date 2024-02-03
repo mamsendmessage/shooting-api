@@ -1,3 +1,5 @@
+const fs = require("fs");
+const { v4: uuidv4, } = require('uuid');
 class CommonMethods {
     static toDateFromDB(CreationDate) {
         let t_date = null;
@@ -20,6 +22,19 @@ class CommonMethods {
             return true;
         }
         return false;
+    }
+
+
+    static SavePlayerImage(pBase64Image) {
+        try {
+            const tImageName = `images/${uuidv4()}.png`;
+            var base64Data = pBase64Image.replace(/^data:image\/png;base64,/, "");
+            fs.writeFileSync(tImageName, base64Data, 'base64');
+            return tImageName;
+        } catch (error) {
+            LoggerService.Log(error);
+            return "";
+        }
     }
 }
 module.exports = CommonMethods;

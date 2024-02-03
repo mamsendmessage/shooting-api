@@ -1,0 +1,38 @@
+{
+    "ID": 1,
+    "Level": 1,
+    "TimePerShot": 5,
+    "TimeToRefill": 10,
+    "Skeets": [
+        {
+            "ID": 1,
+            "Name": "S1",
+            "APIs": [
+                {
+                    "Key": "API_1",
+                    "Value": "http://localhost"
+                },
+                {
+                    "Key": "API_2",
+                    "Value": "http://localhost"
+                }
+            ],
+            "Order": 1
+        },
+        {
+            "ID": 2,
+            "Name": "S2",
+            "APIs": [
+                {
+                    "Key": "API_1",
+                    "Value": "http://localhost"
+                },
+                {
+                    "Key": "API_2",
+                    "Value": "http://localhost"
+                }
+            ],
+            "Order": 2
+        }
+    ]
+}
