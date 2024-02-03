@@ -1,5 +1,6 @@
 const fs = require("fs");
 const { v4: uuidv4, } = require('uuid');
+const LoggerService = require("../services/LoggerService");
 class CommonMethods {
     static toDateFromDB(CreationDate) {
         let t_date = null;
@@ -31,6 +32,20 @@ class CommonMethods {
             var base64Data = pBase64Image.replace(/^data:image\/png;base64,/, "");
             fs.writeFileSync(tImageName, base64Data, 'base64');
             return tImageName;
+        } catch (error) {
+            LoggerService.Log(error);
+            return "";
+        }
+    }
+
+    
+
+    static SavePlayerDocument(pBase64Document) {
+        try {
+            const tDocumentName = `documents/${uuidv4()}.png`;
+            var base64Data = pBase64Document.split(';')[1].replace(/^base64,/, "");
+            fs.writeFileSync(tDocumentName, base64Data, 'base64');
+            return tDocumentName;
         } catch (error) {
             LoggerService.Log(error);
             return "";

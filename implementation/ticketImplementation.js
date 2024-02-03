@@ -89,7 +89,7 @@ class Ticketmplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tData = tDateSet[index];
-          tPlayers.push(new X_TodayPlayer(tData.UserId,tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId, tData.CreationDate));
+          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId, tData.CreationDate));
         }
       }
       return tPlayers;
@@ -113,18 +113,20 @@ class Ticketmplementation {
         tResult = Constant.SUCCESS;
       } else {
         player.Photo = CommonMethods.SavePlayerImage(player.Photo);
-        tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, new Date());
+        player.Document = CommonMethods.SavePlayerDocument(player.Document);
+        tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, new Date(), player.Document);
         const tPlayerarams = [
           { name: "Name", value: tPlayer.Name },
           { name: "NationalityId", value: tPlayer.NationalityId },
           { name: "Age", value: tPlayer.Age },
           { name: "MobileNumber", value: tPlayer.MobileNumber },
           { name: "Photo", value: tPlayer.Photo },
+          { name: "Document", value: tPlayer.Document },
           { name: "CreationDate", value: tPlayer.CreationDate, isDate: true },
         ];
         const tPlayerID = await DatabaseManager.ExecuteNonQuery(
-          `INSERT INTO [Player] ([Name],[NationalityId],[Age],[MobileNumber],[Photo],[CreationDate]) OUTPUT Inserted.ID VALUES
-          (@Name, @NationalityId, @Age, @MobileNumber, @Photo, @CreationDate)`,
+          `INSERT INTO [Player] ([Name],[NationalityId],[Age],[MobileNumber],[Photo],[Document],[CreationDate]) OUTPUT Inserted.ID VALUES
+          (@Name, @NationalityId, @Age, @MobileNumber, @Photo,@Document, @CreationDate)`,
           tPlayerarams, transaction
         );
         if (tPlayerID > 0) {
@@ -172,6 +174,8 @@ class Ticketmplementation {
       if (tResult == Constant.SUCCESS) {
         await DatabaseManager.CommitTransaction(transaction);
       } else {
+        CacheService.cache.players = CacheService.cache.players.filter((item) => item.ID != tPlayer.ID)
+        CacheService.cache.tickets = CacheService.cache.tickets.filter((item) => item.ID != tTicketID)
         await DatabaseManager.RollbackTransaction(transaction);
       }
       return tResult;

@@ -1,0 +1,91 @@
+// Online Java Compiler
+// Use this editor to write, compile and run your Java code online
+import java.util.Arrays;
+import java.util.Scanner;
+class HelloWorld {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        // Step 1: User input for the number of LEDs
+        System.out.print("Enter the number of LEDs: ");
+        int n = scanner.nextInt();
+        int[] LEDs = new int[n];
+
+        // Step 2: User input for the permutation of LEDs
+        System.out.print("Enter the permutation of LEDs: ");
+        for (int i = 0; i < n; i++) {
+            LEDs[i] = scanner.nextInt();
+        }
+
+        // Step 3: Compute the DP table
+        int[][] dp = maxLedLighting(n, LEDs);
+
+        // Step 4: Find LEDs that contribute to the optimal solution
+        int maxLeds = dp[n][n];
+        int[] resultLeds = findLeds(dp, n, LEDs);
+
+        // Step 5: Output the results
+        System.out.println("1. Maximum number of LEDs that can be lighted: " + maxLeds);
+        System.out.println("2. DP Table:");
+        print2DArray(dp);
+        System.out.println("3. LEDs that give the expected result: " + Arrays.toString(resultLeds));
+        System.out.println("4. Demonstrate the result in a good user interface.");
+    }
+    
+
+    
+    // Method to compute the DP table
+    private static int[][] maxLedLighting(int n, int[] LEDs) {
+        int[][] dp = new int[n + 1][n + 1];
+
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (LEDs[j - 1] == i) {
+                    // If the LED matches the power source, increment the count
+                    dp[i][j] = dp[i - 1][j - 1] + 1;
+                } else {
+                    // If there's no match, take the maximum of the previous row and column
+                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+
+        return dp;
+    }
+
+    // Method to find LEDs contributing to the optimal solution
+    private static int[] findLeds(int[][] dp, int n, int[] LEDs) {
+        int i = n;
+        int j = n;
+        int[] resultLeds = new int[dp[n][n]];
+        int index = resultLeds.length - 1;
+
+        while (i > 0 && j > 0) {
+            if (dp[i][j] == dp[i - 1][j]) {
+                // If the current cell comes from the top, move to the previous row
+                i--;
+            } else if (dp[i][j] == dp[i][j - 1]) {
+                // If the current cell comes from the left, move to the previous column
+                j--;
+            } else {
+                // If the current cell comes from the diagonal, the LED contributes to the result
+                resultLeds[index] = LEDs[j - 1];
+                i--;
+                j--;
+                index--;
+            }
+        }
+
+        return resultLeds;
+    }
+
+    // Utility method to print a 2D array
+    private static void print2DArray(int[][] array) {
+        for (int i = 0; i < array.length; i++) {
+            for (int j = 0; j < array[i].length; j++) {
+                System.out.print(array[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+    
+}
