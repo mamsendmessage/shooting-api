@@ -2,6 +2,7 @@ const DatabaseManager = require("../database/databaseManager");
 const LoggerService = require("../services/LoggerService");
 const Configuration = require("../models/Configuration");
 const Skeet = require("../models/Skeet");
+const Nationality = require("../models/Nationality");
 class ConfigurationImplementation {
 
   static async GetAllConfigurations() {
@@ -78,6 +79,25 @@ class ConfigurationImplementation {
         }
       }
       return tSkeets;
+    } catch (error) {
+      LoggerService.Log(error);
+      return null;
+    }
+  }
+
+  static async GetAllNationalities() {
+    try {
+      const Nationalities = [];
+      const tDateSet = await DatabaseManager.ExecuteQuery(
+        "SELECT * FROM [Nationality]"
+      );
+      if (tDateSet) {
+        for (let index = 0; index < tDateSet.length; index++) {
+          const tNationality = tDateSet[index];
+          Nationalities.push(new Nationality(tNationality.NumCode, tNationality.NationalityName));
+        }
+      }
+      return Nationalities;
     } catch (error) {
       LoggerService.Log(error);
       return null;
