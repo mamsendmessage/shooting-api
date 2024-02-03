@@ -1,0 +1,44 @@
+Design and Analysis of Algorithms (COM336) Fall Semester 2023/2024 Project # 1 Dynamic Programming 
+
+For the following problem, write the general form that enables you to use the Dynamic Programming strategy to find the optimal solution.
+
+Implement the designed approach, and then add some test cases and draw the produced table from your program (you may need to write a piece of code to generate some large test cases). 
+Max LED Lighting.
+
+Suppose that you were given two circuit boards (S and L), where S contains n power sources, while L contains n LEDs. The sources on S are sorted in ascending order <1, 2, 3, ... , n>, while the LEDs on L are not <2, 9, 5, 14, 3, ...>.
+
+You were asked to connect each LED in L to its pair in S (i.e., 1 with 1, 2 with 2) through unshielded wires, thus when a wire connects a LED (L(i)) in L with its corresponding source in S (S(i)), it may prevent other LEDs from being connected (no two wires may cross). 
+
+In the below example, if you connected L1 with S1, then only one LED will be lighted.
+
+L	S
+----------
+1	2
+2	6
+3	3
+4	5
+5	4
+6	1
+
+While if you connected {L2 , S2}, {L3,S3}, and {L4, S4}, then 3 LEDs will be lighted.
+
+
+
+Your job is to find the best pairs to be connected, so the maximum number of LEDs are lighted.
+
+The input of your program must be n (numbers of  LEDs. say 100) and a permutation of numbers (<1 to n >) that represent the ordering of the LEDs on the board L.
+
+The output of the program must be the maximum number of LEDs that you can light, and what are they. An example input file is below: 
+
+6
+2 6 3 5 4 1
+
+Your program should print out the following: 
+
+1. The expected result. 
+2. The DP table. 
+3. The LEDs that give the expected result. 
+4. Demonstrate the result in a good user interface 
+
+
+

@@ -1,4 +1,5 @@
 const DatabaseManager = require("../database/databaseManager");
+const CommonMethods = require("../models/CommonMethods");
 const { isToday } = require("../models/CommonMethods");
 const Constant = require("../models/Constant");
 const Player = require("../models/Player");
@@ -16,7 +17,7 @@ class PlayerImplementation {
       );
       for (let index = 0; index < tDateSet.length; index++) {
         const tPlayer = tDateSet[index];
-        tPlayers.push(new Player(tPlayer.ID, tPlayer.Name, tPlayer.NationalityId, tPlayer.Age, tPlayer.MobileNumber, tPlayer.Photo, tPlayer.CreationDate));
+        tPlayers.push(new Player(tPlayer.ID, tPlayer.Name, tPlayer.NationalityId, tPlayer.Age, tPlayer.MobileNumber, tPlayer.Photo, tPlayer.CreationDate,tPlayer.document));
       }
       return tPlayers;
     } catch (error) {
@@ -43,7 +44,7 @@ class PlayerImplementation {
     try {
       const tPlayer = CacheService.cache.players.find((item) => item.ID == pID);
       return tPlayer;
-      
+
     } catch (error) {
       LoggerService.Log(error);
       return undefined;
@@ -72,20 +73,23 @@ class PlayerImplementation {
 
   static async AddPlayer(player) {
     try {
-      player.Photo = this.SavePlayerImage(player.MobileNumber, player.Photo);
-      const tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, new Date());
+
+      player.Photo = CommonMethods.SavePlayerImage(player.Photo);
+      player.Document = CommonMethods.SavePlayerDocument(player.Document);
+      const tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, new Date(), player.Document);
       const params = [
         { name: "Name", value: tPlayer.Name },
         { name: "NationalityId", value: tPlayer.NationalityId },
         { name: "Age", value: tPlayer.Age },
         { name: "MobileNumber", value: tPlayer.MobileNumber },
         { name: "Photo", value: tPlayer.Photo },
+        { name: "Document", value: tPlayer.Document },
         { name: "CreationDate", value: tPlayer.CreationDate, isDate: true },
       ];
 
       const tID = await DatabaseManager.ExecuteNonQuery(
-        `INSERT INTO [Player] ([Name],[NationalityId],[Age],[MobileNumber],[Photo],[CreationDate]) OUTPUT Inserted.ID VALUES
-        (@Name, @NationalityId, @Age, @MobileNumber, @Photo, @CreationDate)`,
+        `INSERT INTO [Player] ([Name],[NationalityId],[Age],[MobileNumber],[Photo],[Document],[CreationDate]) OUTPUT Inserted.ID VALUES
+        (@Name, @NationalityId, @Age, @MobileNumber, @Photo, @Document,@CreationDate)`,
         params
       );
       let tResult;

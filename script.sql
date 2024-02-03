@@ -37,10 +37,9 @@ CREATE TABLE [dbo].[User]([ID] [bigint] PRIMARY KEY IDENTITY(1,1) NOT NULL, [Nam
 GO
 
 CREATE TABLE [dbo].[Player]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [Name] [nvarchar](255) NOT NULL,[NationalityId] [bigint] NULL, [Age] [int] NULL,
-	[MobileNumber] [nvarchar](10) NULL,[Photo] [nvarchar](max) NULL,[CreationDate] [datetime] NOT NULL
+	[MobileNumber] [nvarchar](10) NULL,[Photo] [nvarchar](max) NULL , [Document] varchar(max) not null [CreationDate] [datetime] NOT NULL
 	FOREIGN KEY (NationalityId) REFERENCES Nationality(ID)
 	)
-
 GO
 
 CREATE TABLE [dbo].[Ticket]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [UserId] [bigint] NOT NULL, [LaneId] [bigint] NOT NULL,[GameTypeId] [bigint] NOT NULL,[PlayerLevelId] [bigint] NOT NULL,
