@@ -41,6 +41,23 @@ router.get("/skeets", async (req, res, next) => {
   }
 });
 
+
+router.get("/nationalities", async (req, res, next) => {
+  try {
+    let tNationalities = [];
+    tNationalities = await ConfigImp.GetAllNationalities();
+    tNationalities = tNationalities && tNationalities.length > 0 ? tNationalities : null;
+    if (tNationalities) {
+      res.status(200).json(Response.GetSuccessResponse(tNationalities));
+    } else {
+      res.status(200).json(Response.GetErrorResponse(-100));
+    }
+  } catch (error) {
+    LoggerService.Log(error);
+    res.status(500).json(Response.GetGeneralError());
+  }
+});
+
 router.post("/:Id", async (req, res, next) => {
   try {
     let tConfig = req.body;
