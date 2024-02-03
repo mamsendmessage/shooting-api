@@ -43,6 +43,7 @@ class PlayerImplementation {
     try {
       const tPlayer = CacheService.cache.players.find((item) => item.ID == pID);
       return tPlayer;
+      
     } catch (error) {
       LoggerService.Log(error);
       return undefined;
