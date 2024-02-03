@@ -4,7 +4,8 @@ const LoggerService = require("../services/LoggerService");
 const Ticket = require("../models/Ticket");
 const CacheService = require("../services/CacheService");
 const X_TodayPlayer = require("../models/X_TodayPlayer");
-
+const Player = require("../models/Player");
+const CommonMethods = require("../models/CommonMethods");
 class Ticketmplementation {
 
   static async GetAllTicketsFromDB() {
@@ -16,7 +17,7 @@ class Ticketmplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tTicket = tDateSet[index];
-          tTickets.push(new Ticket(tTicket.ID, tTicket.UserId, tTicket.LaneId, tTicket.GameTypeId, tTicket.PlayerLevelId, tTicket.SesstionTimeId, tTicket.State, tTicket.TicketType, tTicket.UserType, tTicket.CreationDate, tTicket.LastModificationDate));
+          tTickets.push(new Ticket(tTicket.ID, tTicket.UserId, tTicket.LaneId, tTicket.GameTypeId, tTicket.PlayerLevelId, tTicket.SessionTimeId, tTicket.State, tTicket.TicketType, tTicket.UserType, tTicket.CreationDate, tTicket.LastModificationDate));
         }
       }
 
@@ -88,7 +89,7 @@ class Ticketmplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tData = tDateSet[index];
-          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State,tData.TicketType,tData.UserType,tData.LaneId, tData.CreationDate));
+          tPlayers.push(new X_TodayPlayer(tData.UserId,tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId, tData.CreationDate));
         }
       }
       return tPlayers;
@@ -98,15 +99,98 @@ class Ticketmplementation {
     }
   }
 
-  static async AddTicket(ticket) {
+
+  static async AddTicketForNewPlayer(data) {
     try {
-      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SesstionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
+      const ticket = data.ticket;
+      const player = data.player;
+      let tPlayer = null;
+      let tResult;
+      const transaction = await DatabaseManager.BeginTransaction();
+      const tFoundPlayer = CacheService.cache.players.find((item) => item.MobileNumber == player.MobileNumber);
+      if (tFoundPlayer) {
+        tPlayer = new Player(tFoundPlayer);
+        tResult = Constant.SUCCESS;
+      } else {
+        player.Photo = CommonMethods.SavePlayerImage(player.Photo);
+        tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, new Date());
+        const tPlayerarams = [
+          { name: "Name", value: tPlayer.Name },
+          { name: "NationalityId", value: tPlayer.NationalityId },
+          { name: "Age", value: tPlayer.Age },
+          { name: "MobileNumber", value: tPlayer.MobileNumber },
+          { name: "Photo", value: tPlayer.Photo },
+          { name: "CreationDate", value: tPlayer.CreationDate, isDate: true },
+        ];
+        const tPlayerID = await DatabaseManager.ExecuteNonQuery(
+          `INSERT INTO [Player] ([Name],[NationalityId],[Age],[MobileNumber],[Photo],[CreationDate]) OUTPUT Inserted.ID VALUES
+          (@Name, @NationalityId, @Age, @MobileNumber, @Photo, @CreationDate)`,
+          tPlayerarams, transaction
+        );
+        if (tPlayerID > 0) {
+          tResult = Constant.SUCCESS;
+          tPlayer.ID = tPlayerID;
+          CacheService.cache.players.push(tPlayer);
+        } else {
+          tResult = Constant.ERROR;
+        }
+      }
+      if (tResult != Constant.SUCCESS) {
+        await DatabaseManager.RollbackTransaction(transaction);
+        return;
+      }
+
+      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
+      tTicket.UserId = tPlayer.ID;
+      tTicket.UserType = 1;
+      tTicket.TicketType = 1;
       const params = [
         { name: "UserId", value: tTicket.UserId },
         { name: "LaneId", value: tTicket.LaneId },
         { name: "GameTypeId", value: tTicket.GameTypeId },
         { name: "PlayerLevelId", value: tTicket.PlayerLevelId },
-        { name: "SesstionTimeId", value: tTicket.SesstionTimeId },
+        { name: "SessionTimeId", value: tTicket.SessionTimeId },
+        { name: "State", value: tTicket.State },
+        { name: "TicketType", value: tTicket.TicketType },
+        { name: "UserType", value: tTicket.UserType },
+        { name: "CreationDate", value: tTicket.CreationDate },
+        { name: "LastModificationDate", value: tTicket.LastModificationDate },
+      ];
+
+      const tTicketID = await DatabaseManager.ExecuteNonQuery(
+        "INSERT INTO [Ticket] ([UserId],[LaneId],[GameTypeId],[PlayerLevelId],[SessionTimeId],[State],[UserType],[TicketType],[CreationDate],[LastModificationDate]) OUTPUT Inserted.ID VALUES " +
+        "(@UserId, @LaneId,@GameTypeId, @PlayerLevelId, @SessionTimeId, @State,@UserType, @TicketType, @CreationDate, @LastModificationDate)",
+        params, transaction
+      );
+      if (tTicketID > 0) {
+        tResult = Constant.SUCCESS;
+        tTicket.ID = tTicketID;
+        CacheService.cache.tickets.push(tTicket);
+      } else {
+        tResult = Constant.ERROR;
+      }
+      if (tResult == Constant.SUCCESS) {
+        await DatabaseManager.CommitTransaction(transaction);
+      } else {
+        await DatabaseManager.RollbackTransaction(transaction);
+      }
+      return tResult;
+    } catch (error) {
+      LoggerService.Log(error);
+      return Constant.ERROR;
+    }
+  }
+
+
+  static async AddTicket(ticket) {
+    try {
+      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
+      const params = [
+        { name: "UserId", value: tTicket.UserId },
+        { name: "LaneId", value: tTicket.LaneId },
+        { name: "GameTypeId", value: tTicket.GameTypeId },
+        { name: "PlayerLevelId", value: tTicket.PlayerLevelId },
+        { name: "SessionTimeId", value: tTicket.SessionTimeId },
         { name: "State", value: tTicket.State },
         { name: "TicketType", value: tTicket.TicketType },
         { name: "UserType", value: tTicket.UserType },
@@ -114,8 +198,8 @@ class Ticketmplementation {
         { name: "LastModificationDate", value: tTicket.LastModificationDate },
       ];
       const tID = await DatabaseManager.ExecuteNonQuery(
-        "INSERT INTO [Ticket] ([UserId],[LaneId],[GameTypeId],[PlayerLevelId],[SesstionTimeId],[State],[CreationDate],[LastModificationDate]) OUTPUT Inserted.ID VALUES " +
-        "(@UserId, @LaneId,@GameTypeId, @PlayerLevelId, @SesstionTimeId, @State,[UserType] = @UserType, [TicketType] = @TicketType, @CreationDate, @LastModificationDate)",
+        "INSERT INTO [Ticket] ([UserId],[LaneId],[GameTypeId],[PlayerLevelId],[SessionTimeId],[State],[UserType],[TicketType],[CreationDate],[LastModificationDate]) OUTPUT Inserted.ID VALUES " +
+        "(@UserId, @LaneId,@GameTypeId, @PlayerLevelId, @SessionTimeId, @State,@UserType, @TicketType, @CreationDate, @LastModificationDate)",
         params
       );
       let tResult;
@@ -135,12 +219,12 @@ class Ticketmplementation {
 
   static async UpdateTicket(ticket) {
     try {
-      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SesstionTimeId, ticket.State, ticket.TicketType, ticket.UserType, ticket.CreationDate, new Date())
+      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, ticket.CreationDate, new Date())
       const params = [
         { name: "UserId", value: tTicket.UserId },
         { name: "LaneId", value: tTicket.LaneId },
         { name: "GameTypeId", value: tTicket.GameTypeId },
-        { name: "SesstionTimeId", value: tTicket.SesstionTimeId },
+        { name: "SessionTimeId", value: tTicket.SessionTimeId },
         { name: "State", value: tTicket.State },
         { name: "LastModificationDate", value: tTicket.LastModificationDate },
         { name: "TicketType", value: tTicket.TicketType },
@@ -149,7 +233,7 @@ class Ticketmplementation {
       ];
       const tResult = await DatabaseManager.ExecuteNonQuery(
         "UPDATE [Ticket] SET [UserId] = @UserId, [LaneId] = @LaneId, [GameTypeId] = @GameTypeId, " +
-        "[SesstionTimeId] = @SesstionTimeId, [State] = @State,[UserType] = @UserType, [TicketType] = @TicketType, [LastModificationDate] = @LastModificationDate WHERE [ID] = @ID",
+        "[SessionTimeId] = @SessionTimeId, [State] = @State,[UserType] = @UserType, [TicketType] = @TicketType, [LastModificationDate] = @LastModificationDate WHERE [ID] = @ID",
         params
       );
       if (tResult == 0) {

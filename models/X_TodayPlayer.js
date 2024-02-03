@@ -1,7 +1,8 @@
 const { toDateFromDB } = require("./CommonMethods");
 class X_TodayPlayer {
-    constructor(UserId, Photo, Name, GameType, PlayerLevel, State, TicketType, UserType,LaneId, CreationDate) {
+    constructor(UserId, TicketId,Photo, Name, GameType, PlayerLevel, State, TicketType, UserType,LaneId, CreationDate) {
         this.UserId = UserId;
+        this.TicketId = TicketId;
         this.Photo = Photo;
         this.Name = Name;
         this.GameType = GameType;

@@ -8,6 +8,7 @@ const config = {
   options: {
     encrypt: true, // For Azure SQL Database
     trustServerCertificate: true, // For local development only
+    packetSize: 32768
   },
 };
 

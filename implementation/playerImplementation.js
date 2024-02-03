@@ -6,7 +6,6 @@ const Ticket = require("../models/Ticket");
 const CacheService = require("../services/CacheService");
 const LoggerService = require("../services/LoggerService");
 const Ticketmplementation = require("./ticketImplementation");
-
 class PlayerImplementation {
 
   static async GetAllPlayersFromDB() {
@@ -72,15 +71,15 @@ class PlayerImplementation {
 
   static async AddPlayer(player) {
     try {
+      player.Photo = this.SavePlayerImage(player.MobileNumber, player.Photo);
       const tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, new Date());
-
       const params = [
         { name: "Name", value: tPlayer.Name },
         { name: "NationalityId", value: tPlayer.NationalityId },
         { name: "Age", value: tPlayer.Age },
-        { name: "MobileNumber", tPlayer: player.MobileNumber },
+        { name: "MobileNumber", value: tPlayer.MobileNumber },
         { name: "Photo", value: tPlayer.Photo },
-        { name: "CreationDate", value: tPlayer.CreationDate },
+        { name: "CreationDate", value: tPlayer.CreationDate, isDate: true },
       ];
 
       const tID = await DatabaseManager.ExecuteNonQuery(
@@ -90,7 +89,7 @@ class PlayerImplementation {
       );
       let tResult;
       if (tID > 0) {
-        tResult = Constant.SUCCESS;
+        tResult = tID;
         tPlayer.ID = tID;
         CacheService.cache.players.push(tPlayer);
       } else {
