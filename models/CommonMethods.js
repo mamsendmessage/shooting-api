@@ -28,24 +28,32 @@ class CommonMethods {
 
     static SavePlayerImage(pBase64Image) {
         try {
-            const tImageName = `images/${uuidv4()}.png`;
-            var base64Data = pBase64Image.replace(/^data:image\/png;base64,/, "");
-            fs.writeFileSync(tImageName, base64Data, 'base64');
-            return tImageName;
+            if (pBase64Image && pBase64Image.length > 0) {
+                const tImageName = `images/${uuidv4()}.png`;
+                var base64Data = pBase64Image.replace(/^data:image\/png;base64,/, "");
+                fs.writeFileSync(tImageName, base64Data, 'base64');
+                return tImageName;
+            } else {
+                return "";
+            }
         } catch (error) {
             LoggerService.Log(error);
             return "";
         }
     }
 
-    
+
 
     static SavePlayerDocument(pBase64Document) {
         try {
-            const tDocumentName = `documents/${uuidv4()}.png`;
-            var base64Data = pBase64Document.split(';')[1].replace(/^base64,/, "");
-            fs.writeFileSync(tDocumentName, base64Data, 'base64');
-            return tDocumentName;
+            if (pBase64Document && pBase64Document.length > 0) {
+                const tDocumentName = `documents/${uuidv4()}.pdf`;
+                var base64Data = pBase64Document.split(';')[1].replace(/^base64,/, "");
+                fs.writeFileSync(tDocumentName, base64Data, 'base64');
+                return tDocumentName;
+            } else {
+                return "";
+            }
         } catch (error) {
             LoggerService.Log(error);
             return "";
