@@ -1,6 +1,6 @@
 class AuthenticationMiddleware {
   static authenticateToken(req, res, next) {
-    next();
+    // let authorization = req.headers.authorization;
     // const authHeader = req.headers["authorization"];
     // const token = authHeader && authHeader.split(" ")[1];
     // if (!token) {
@@ -12,7 +12,7 @@ class AuthenticationMiddleware {
     //   return res.status(403).json({ error: result.error });
     // }
     // req.user = result.data;
-    // next();
+    next();
   }
 }
 

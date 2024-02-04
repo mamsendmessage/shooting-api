@@ -15,8 +15,12 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
 app.use(function (req, res, next) {
+  if(req.method =='OPTION'){
+    res.send(200);
+  }
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header('Access-Control-Allow-Methods', 'POST, GET');
   next();
 });
 app.use(express.static('images'))
