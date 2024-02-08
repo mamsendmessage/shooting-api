@@ -293,7 +293,7 @@ CREATE TABLE [dbo].[User]([ID] [bigint] PRIMARY KEY IDENTITY(1,1) NOT NULL, [Nam
 
 GO
 
-INSERT INTO [USER] VALUES ('Super Admin','admin','admin','xxxxxx',GETDATE())
+INSERT INTO [USER] VALUES ('Super Admin','admin@gmail.com','admin','xxxxxx',GETDATE())
 
 GO
 CREATE TABLE [dbo].[Player]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [Name] [nvarchar](255) NOT NULL,[NationalityId] int not  NULL, [Age] [int] NULL,
