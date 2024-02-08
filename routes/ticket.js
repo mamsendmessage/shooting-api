@@ -36,7 +36,7 @@ router.get("/", async (req, res, next) => {
 
 router.get("/:Id", async (req, res, next) => {
   try {
-    const tTicket = TicketImp.GetTicketByID(req.params.Id);
+    const tTicket = await TicketImp.GetTicketByID(req.params.Id);
     if (tTicket) {
       res.status(200).json(Response.GetSuccessResponse(tTicket));
     } else {
@@ -78,11 +78,10 @@ router.post("/newPlayer", async (req, res, next) => {
   }
 });
 
-router.put("/:Id", async (req, res, next) => {
+router.post("/updateState", async (req, res, next) => {
   try {
     let tTicket = req.body;
-    tTicket.ID = req.params.Id;
-    const tResult = await TicketImp.UpdateTicket(tTicket);
+    const tResult = await TicketImp.UpdateTicketState(tTicket);
     if (tResult == 0) {
       res.status(200).json(Response.GetSuccessResponse(0));
     } else {
@@ -93,6 +92,8 @@ router.put("/:Id", async (req, res, next) => {
     res.status(500).json(Response.GetGeneralError());
   }
 });
+
+
 
 router.delete("/:Id", async (req, res, next) => {
   try {

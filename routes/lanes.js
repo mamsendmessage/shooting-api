@@ -4,6 +4,7 @@ const LaneImp = require("../implementation/laneImplementation");
 const TicketImp = require("../implementation/ticketImplementation")
 const LoggerService = require("../services/LoggerService");
 const Response = require('../models/Response');
+const PlayerImplementation = require("../implementation/playerImplementation");
 
 router.get("/", async (req, res, next) => {
   try {
@@ -106,5 +107,35 @@ router.post("/ticket", async (req, res, next) => {
     res.status(500).json(Response.GetGeneralError());
   }
 });
+
+router.post("/player/:Id", async (req, res, next) => {
+  try {
+    const tPlayer = await PlayerImplementation.GetPlayerByID(req.params.Id);
+    if (tPlayer) {
+      res.status(200).json(Response.GetSuccessResponse(tPlayer));
+    } else {
+      res.status(200).json(Response.GetErrorResponse(-100));
+    }
+  } catch (error) {
+    LoggerService.Log(error);
+    res.status(500).json(Response.GetGeneralError());
+  }
+});
+
+
+router.post("/ticket/:Id", async (req, res, next) => {
+  try {
+    const tTicket = await TicketImp.GetTicketByID(req.params.Id);
+    if (tTicket) {
+      res.status(200).json(Response.GetSuccessResponse(tTicket));
+    } else {
+      res.status(200).json(Response.GetErrorResponse(-100));
+    }
+  } catch (error) {
+    LoggerService.Log(error);
+    res.status(500).json(Response.GetGeneralError());
+  }
+});
+
 
 module.exports = router;
