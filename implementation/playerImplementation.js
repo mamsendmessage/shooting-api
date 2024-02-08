@@ -17,7 +17,8 @@ class PlayerImplementation {
       );
       for (let index = 0; index < tDateSet.length; index++) {
         const tPlayer = tDateSet[index];
-        tPlayers.push(new Player(tPlayer.ID, tPlayer.Name, tPlayer.NationalityId, tPlayer.Age, tPlayer.MobileNumber, tPlayer.Photo, tPlayer.CreationDate,tPlayer.document));
+        tPlayers.push(new Player(tPlayer.ID, tPlayer.Name, tPlayer.NationalityId, tPlayer.Age, tPlayer.MobileNumber, tPlayer.Photo, tPlayer.CreationDate,tPlayer.document,
+          tPlayer.PassportsNo, tPlayer.MembershipNo, tPlayer.MembershipExpiry));
       }
       return tPlayers;
     } catch (error) {
@@ -117,11 +118,14 @@ class PlayerImplementation {
         { name: "MobileNumber", value: tPlayer.MobileNumber },
         { name: "Photo", value: tPlayer.Photo },
         { name: "ID", value: tPlayer.ID },
+        { name: "PassportsNo", value: tPlayer.PassportsNo },
+        { name: "MembershipNo", value: tPlayer.MembershipNo },
+        { name: "MembershipExpiry", value: new Date(tPlayer.MembershipExpiry), isDate: true },
       ];
 
       const tResult = await DatabaseManager.ExecuteNonQuery(
         `UPDATE [Player] SET [Name] = @Name, [NationalityId] = @NationalityId,
-        [Age] = @Age, [MobileNumber] = @MobileNumber, [Photo] = @Photo WHERE [ID] = @ID`,
+        [Age] = @Age, [MobileNumber] = @MobileNumber, [Photo] = @Photo,[PassportsNo]=@PassportsNo,[MembershipNo]=@MembershipNo,[MembershipExpiry]=@MembershipExpiry  WHERE [ID] = @ID`,
         params
       );
       if (tResult == 0) {

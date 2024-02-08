@@ -6,6 +6,8 @@ const CacheService = require("../services/CacheService");
 const X_TodayPlayer = require("../models/X_TodayPlayer");
 const Player = require("../models/Player");
 const CommonMethods = require("../models/CommonMethods");
+const PlayerImp = require("./playerImplementation");
+const PlayerImplementation = require("../implementation/playerImplementation");
 class Ticketmplementation {
 
   static async GetAllTicketsFromDB() {
@@ -61,12 +63,29 @@ class Ticketmplementation {
     }
   }
 
-  static GetTicketByLaneId(pLaneId) {
+
+  static async GetTicketByLaneId(planeId) {
     try {
-      const tTickets = CacheService.cache.tickets.filter((item) => item.LaneId == pLaneId);
-      return tTickets;
+      const tPlayers = [];
+
+      const params = [
+        { name: "LaneId", value: planeId },
+      ];
+
+      const tDateSet = await DatabaseManager.ExecuteQuery(
+        "SELECT * FROM X_TodayPlayers WHERE [LaneId] = @LaneId and [State] = 1",
+        params
+      );
+      if (tDateSet) {
+        for (let index = 0; index < tDateSet.length; index++) {
+          const tData = tDateSet[index];
+          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId, tData.CreationDate));
+        }
+      }
+      return tPlayers;
     } catch (error) {
       LoggerService.Log(error);
+      return undefined;
     }
   }
 
@@ -109,12 +128,14 @@ class Ticketmplementation {
       const transaction = await DatabaseManager.BeginTransaction();
       const tFoundPlayer = CacheService.cache.players.find((item) => item.MobileNumber == player.MobileNumber);
       if (tFoundPlayer) {
-        tPlayer = new Player(tFoundPlayer);
+        tPlayer = new Player(tFoundPlayer.ID,tFoundPlayer.Name,tFoundPlayer.NationalityId, tFoundPlayer.Age, tFoundPlayer.MobileNumber, tFoundPlayer.Photo, tFoundPlayer.CreationDate, tFoundPlayer.Document,
+        tFoundPlayer.PassportsNo, tFoundPlayer.MembershipNo, tFoundPlayer.MembershipExpiry);
         tResult = Constant.SUCCESS;
       } else {
         player.Photo = CommonMethods.SavePlayerImage(player.Photo);
         player.Document = CommonMethods.SavePlayerDocument(player.Document);
-        tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, new Date(), player.Document);
+        tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, new Date(), player.Document,
+          player.PassportsNo, player.MembershipNo, player.MembershipExpiry);
         const tPlayerarams = [
           { name: "Name", value: tPlayer.Name },
           { name: "NationalityId", value: tPlayer.NationalityId },
@@ -123,10 +144,13 @@ class Ticketmplementation {
           { name: "Photo", value: tPlayer.Photo },
           { name: "Document", value: tPlayer.Document },
           { name: "CreationDate", value: tPlayer.CreationDate, isDate: true },
+          { name: "PassportsNo", value: tPlayer.PassportsNo },
+          { name: "MembershipNo", value: tPlayer.MembershipNo },
+          { name: "MembershipExpiry", value: new Date(tPlayer.MembershipExpiry), isDate: true },
         ];
         const tPlayerID = await DatabaseManager.ExecuteNonQuery(
-          `INSERT INTO [Player] ([Name],[NationalityId],[Age],[MobileNumber],[Photo],[Document],[CreationDate]) OUTPUT Inserted.ID VALUES
-          (@Name, @NationalityId, @Age, @MobileNumber, @Photo,@Document, @CreationDate)`,
+          `INSERT INTO [Player] ([Name],[NationalityId],[Age],[MobileNumber],[Photo],[Document],[CreationDate],[PassportsNo],[MembershipNo],[MembershipExpiry]) OUTPUT Inserted.ID VALUES
+          (@Name, @NationalityId, @Age, @MobileNumber, @Photo,@Document, @CreationDate, @PassportsNo,@MembershipNo, @MembershipExpiry)`,
           tPlayerarams, transaction
         );
         if (tPlayerID > 0) {
@@ -145,7 +169,7 @@ class Ticketmplementation {
       const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
       tTicket.UserId = tPlayer.ID;
       tTicket.UserType = 1;
-      tTicket.TicketType = 1;
+      tTicket.TicketType = tFoundPlayer ? 2 : 1;
       const params = [
         { name: "UserId", value: tTicket.UserId },
         { name: "LaneId", value: tTicket.LaneId },

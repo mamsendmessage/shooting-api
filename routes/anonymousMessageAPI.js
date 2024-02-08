@@ -1,6 +1,6 @@
 var express = require("express");
 var router = express.Router();
-const playerRouter = require("./player");
-router.use("/players", playerRouter);
+const laneRouter = require("./lanes");
+router.use("/lanes", laneRouter);
 module.exports = router;
 // TODO:: 

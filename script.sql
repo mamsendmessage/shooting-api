@@ -1,5 +1,4 @@
 
-
 CREATE TABLE [GameType] ( [ID] [bigint] Primary KEY IDENTITY(1,1) NOT NULL,[Name] [nvarchar] (max) NOT NULL);
 INSERT INTO [GameType] VALUES ('Normal')
 INSERT INTO [GameType] VALUES ('Special sessions')
@@ -281,20 +280,31 @@ GO
 CREATE TABLE [Lane]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL,[Name] [nvarchar](255) NOT NULL,[Number] [bigint] Unique NOT NULL,[CreationDate] [datetime] NOT NULL)
 
 GO
-
-CREATE TABLE [dbo].[User]([ID] [bigint] PRIMARY KEY IDENTITY(1,1) NOT NULL, [Name] [nvarchar](255) NOT NULL,[Email] [nvarchar](500) Unique NOT NULL,[Password] [nvarchar](255) NOT NULL,
-	[MobileNumber] [nvarchar](10) NOT NULL Unique ,[CreationDate] [datetime] NOT NULL)
+INSERT INTO [Lane] VALUES ('Lane 1',1, GETDATE())
+INSERT INTO [Lane] VALUES ('Lane 2',2, GETDATE())
+INSERT INTO [Lane] VALUES ('Lane 3',3, GETDATE())
+INSERT INTO [Lane] VALUES ('Lane 4',4, GETDATE())
+INSERT INTO [Lane] VALUES ('Lane 5',5, GETDATE())
 
 GO
 
+CREATE TABLE [dbo].[User]([ID] [bigint] PRIMARY KEY IDENTITY(1,1) NOT NULL, [Name] [nvarchar](255) NOT NULL,[Email] [nvarchar](500) Unique NOT NULL,[Password] [nvarchar](255) NOT NULL,
+	[MobileNumber] [nvarchar](15) NOT NULL Unique ,[CreationDate] [datetime] NOT NULL)
+
+GO
+
+INSERT INTO [USER] VALUES ('Super Admin','admin','admin','xxxxxx',GETDATE())
+
+GO
 CREATE TABLE [dbo].[Player]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [Name] [nvarchar](255) NOT NULL,[NationalityId] int not  NULL, [Age] [int] NULL,
-	[MobileNumber] [nvarchar](10) NULL,[Photo] [nvarchar](max) NULL , [Document] varchar(max) not null, [CreationDate] [datetime] NOT NULL
+	[MobileNumber] [nvarchar](15) NULL,[Photo] [nvarchar](max) NULL , [Document] varchar(max) not null, [CreationDate] [datetime] NOT NULL,[PassportsNo] varchar(max) NOT NULL
+	,[MembershipNo]  varchar(max) NOT NULL,[MembershipExpiry] [datetime] NOT NULL
 	FOREIGN KEY (NationalityId) REFERENCES Nationality(NumCode)
 	)
 GO
 
 CREATE TABLE [dbo].[Ticket]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [UserId] [bigint] NOT NULL, [LaneId] [bigint] NOT NULL,[GameTypeId] [bigint] NOT NULL,[PlayerLevelId] [bigint] NOT NULL,
-	[SessionTimeId] [bigint] NOT NULL,[State] [int] NOT NULL, [TicketType] [int] NOT NULL, [UserType] [int] NOT NULL, [CreationDate] [datetime] NOT NULL,[LastModificationDate] [datetime] NULL
+	[SessionTimeId] [bigint] ,[State] [int] NOT NULL, [TicketType] [int] NOT NULL, [UserType] [int] NOT NULL, [CreationDate] [datetime] NOT NULL,[LastModificationDate] [datetime] NULL
 
 	FOREIGN KEY (UserId) REFERENCES [Player](ID),
 	FOREIGN KEY (LaneId) REFERENCES Lane(ID),
@@ -330,7 +340,26 @@ CREATE TABLE [Configuration] (
 	Config VARCHAR(MAX) not null
 	)
 GO
+
+INSERT INTO  [Configuration] VALUES (1,10,10,1,'{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":[],"API":[]}],"ID":"1"}')
+INSERT INTO  [Configuration] VALUES (2,10,10,1,'{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":[],"API":[]}],"ID":"2"}')
+INSERT INTO  [Configuration] VALUES (3,10,10,1,'{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":[],"API":[]}],"ID":"3"}')
+INSERT INTO  [Configuration] VALUES (4,10,10,1,'{"TimePerShot":10,"TimeToRefill":10,"Configurations":[{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]}]}')
+GO
 CREATE TABLE [Skeet](
 	ID bigint Primary KEY Identity,
 	[Name] Varchar(250) not null UNIQUE,
 )
+GO
+INSERT INTO [Skeet] VALUES ('s1')
+INSERT INTO [Skeet] VALUES ('s2')
+INSERT INTO [Skeet] VALUES ('s3')
+INSERT INTO [Skeet] VALUES ('s4')
+INSERT INTO [Skeet] VALUES ('s5')
+INSERT INTO [Skeet] VALUES ('s6')
+INSERT INTO [Skeet] VALUES ('s7')
+INSERT INTO [Skeet] VALUES ('s8')
+INSERT INTO [Skeet] VALUES ('s9')
+INSERT INTO [Skeet] VALUES ('s10')
+INSERT INTO [Skeet] VALUES ('LH')
+INSERT INTO [Skeet] VALUES ('HH')

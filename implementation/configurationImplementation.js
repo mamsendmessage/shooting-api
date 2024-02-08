@@ -47,11 +47,11 @@ class ConfigurationImplementation {
   static async UpdateConfigurationByID(pConfiguration) {
     try {
 
-      const tConfiguration = new Configuration(pConfiguration.ID, pConfiguration.Type, pConfiguration.TimePerShot, pConfiguration.TimeToRefill, pConfiguration.Config)
+      const tConfiguration = new Configuration(pConfiguration.ID, pConfiguration.Type, pConfiguration.TimePerShot, pConfiguration.TimeToRefill,pConfiguration.NumberOfSkeets, pConfiguration.config)
       const params = [
         { name: "TimePerShot", value: tConfiguration.TimePerShot },
         { name: "TimeToRefill", value: tConfiguration.TimeToRefill },
-        { name: "Config", value: JSON.stringify(pConfiguration) },
+        { name: "Config", value: tConfiguration.Config },
         { name: "ID", value: tConfiguration.ID },
       ];
 
@@ -70,7 +70,7 @@ class ConfigurationImplementation {
     try {
       const tSkeets = [];
       const tDateSet = await DatabaseManager.ExecuteQuery(
-        "SELECT * FROM [Skeet]"
+        "SELECT * FROM [Skeet] Order By [ID]"
       );
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
