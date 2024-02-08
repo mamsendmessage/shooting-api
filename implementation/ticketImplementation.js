@@ -73,7 +73,7 @@ class Ticketmplementation {
       ];
 
       const tDateSet = await DatabaseManager.ExecuteQuery(
-        "SELECT * FROM X_TodayPlayers WHERE [LaneId] = @LaneId and [State] = 1",
+        "SELECT * FROM X_TodayPlayers WHERE [LaneId] = @LaneId and ([State] = 1 or [State] = 0)",
         params
       );
       if (tDateSet) {
@@ -262,6 +262,30 @@ class Ticketmplementation {
       const tResult = await DatabaseManager.ExecuteNonQuery(
         "UPDATE [Ticket] SET [UserId] = @UserId, [LaneId] = @LaneId, [GameTypeId] = @GameTypeId, " +
         "[SessionTimeId] = @SessionTimeId, [State] = @State,[UserType] = @UserType, [TicketType] = @TicketType, [LastModificationDate] = @LastModificationDate WHERE [ID] = @ID",
+        params
+      );
+      if (tResult == 0) {
+        let tTicketIndex = CacheService.cache.tickets.findIndex((item) => item.ID == tTicket.ID);
+        CacheService.cache.tickets[tTicketIndex] = tTicket;
+      }
+      return tResult;
+    } catch (error) {
+      LoggerService.Log(error);
+      return Constant.ERROR;
+    }
+  }
+
+
+  static async UpdateTicketState(ticket) {
+    try {
+      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, ticket.CreationDate, new Date())
+      const params = [
+        { name: "State", value: tTicket.State },
+        { name: "ID", value: tTicket.ID },
+        { name: "LastModificationDate", value: tTicket.LastModificationDate },
+      ];
+      const tResult = await DatabaseManager.ExecuteNonQuery(
+        "UPDATE [Ticket] SET [State] = @State WHERE [ID] = @ID",
         params
       );
       if (tResult == 0) {
