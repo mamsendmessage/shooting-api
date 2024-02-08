@@ -2,6 +2,10 @@ const DatabaseManager = require("../database/databaseManager");
 const LoggerService = require("../services/LoggerService");
 const Configuration = require("../models/Configuration");
 const Skeet = require("../models/Skeet");
+const SessionTime = require("../models/SessionTime");
+const PlayerLevel = require("../models/PlayerLevel");
+
+
 const Nationality = require("../models/Nationality");
 class ConfigurationImplementation {
 
@@ -103,7 +107,42 @@ class ConfigurationImplementation {
       return null;
     }
   }
-
+  static async GetAllSessionsTime() {
+    try {
+      const tSessionsTime = [];
+      const tDateSet = await DatabaseManager.ExecuteQuery(
+        "SELECT * FROM [SessionTime] Order By [ID]"
+      );
+      if (tDateSet) {
+        for (let index = 0; index < tDateSet.length; index++) {
+          const Session = tDateSet[index];
+          tSessionsTime.push(new SessionTime(Session.ID, Session.Name));
+        }
+      }
+      return tSessionsTime;
+    } catch (error) {
+      LoggerService.Log(error);
+      return null;
+    }
+  }
+  static async GetAllPlayerLevels() {
+    try {
+      const tLevels = [];
+      const tDateSet = await DatabaseManager.ExecuteQuery(
+        "SELECT * FROM [PlayerLevel] Order By [ID]"
+      );
+      if (tDateSet) {
+        for (let index = 0; index < tDateSet.length; index++) {
+          const Level = tDateSet[index];
+          tLevels.push(new PlayerLevel(Level.ID, Level.Name));
+        }
+      }
+      return tLevels;
+    } catch (error) {
+      LoggerService.Log(error);
+      return null;
+    }
+  }
 }
 
 module.exports = ConfigurationImplementation;

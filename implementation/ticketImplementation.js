@@ -128,8 +128,8 @@ class Ticketmplementation {
       const transaction = await DatabaseManager.BeginTransaction();
       const tFoundPlayer = CacheService.cache.players.find((item) => item.MobileNumber == player.MobileNumber);
       if (tFoundPlayer) {
-        tPlayer = new Player(tFoundPlayer.ID,tFoundPlayer.Name,tFoundPlayer.NationalityId, tFoundPlayer.Age, tFoundPlayer.MobileNumber, tFoundPlayer.Photo, tFoundPlayer.CreationDate, tFoundPlayer.Document,
-        tFoundPlayer.PassportsNo, tFoundPlayer.MembershipNo, tFoundPlayer.MembershipExpiry);
+        tPlayer = new Player(tFoundPlayer.ID, tFoundPlayer.Name, tFoundPlayer.NationalityId, tFoundPlayer.Age, tFoundPlayer.MobileNumber, tFoundPlayer.Photo, tFoundPlayer.CreationDate, tFoundPlayer.Document,
+          tFoundPlayer.PassportsNo, tFoundPlayer.MembershipNo, tFoundPlayer.MembershipExpiry);
         tResult = Constant.SUCCESS;
       } else {
         player.Photo = CommonMethods.SavePlayerImage(player.Photo);
@@ -166,7 +166,19 @@ class Ticketmplementation {
         return;
       }
 
-      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
+      //check numbers of waiting tickits 
+      var AllTickets = await this.GetAllTickets();
+      var WatingTickets = AllTickets.filter((item) => item.State == 0);
+
+
+
+
+
+      var tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
+      if (WatingTickets.length >= 5)
+        tTicket.State = 2;
+      else
+        tTicket.State = 0;
       tTicket.UserId = tPlayer.ID;
       tTicket.UserType = 1;
       tTicket.TicketType = tFoundPlayer ? 2 : 1;
