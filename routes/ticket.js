@@ -2,7 +2,6 @@ var express = require("express");
 var router = express.Router();
 const TicketImp = require("../implementation/ticketImplementation");
 const Response = require('../models/Response');
-const PlayerImplementation = require("../implementation/playerImplementation");
 
 router.get("/", async (req, res, next) => {
   try {
@@ -17,7 +16,7 @@ router.get("/", async (req, res, next) => {
       }
     } else if (req.query && req.query.laneId) {
       const tLaneId = req.query.laneId;
-      tTickets = TicketImp.GetTicketByLaneId(tLaneId);
+      tTickets = await TicketImp.GetTicketByLaneId(tLaneId);
     } else if (req.query && req.query.userId) {
       const tUserId = req.query.userId;
       tTickets = TicketImp.GetTicketByUserId(tUserId);

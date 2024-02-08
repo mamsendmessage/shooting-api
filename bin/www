@@ -10,7 +10,7 @@ var http = require("http");
 const DatabaseManager = require("../database/databaseManager");
 const Constant = require("../models/Constant");
 const ConfigurationService = require("../services/ConfigurationService");
-
+const socket = require('socket.io');
 /**
  * Get port from environment and store in Express.
  */
@@ -23,12 +23,26 @@ app.set("port", port);
  */
 
 var server = http.createServer(app);
-
 /**
  * Listen on provided port, on all network interfaces.
  */
 
 server.listen(port);
+const SocketIO = socket(server, {
+  cors: {
+    origin: '*',
+  }
+});
+
+SocketIO.on('connection', (socket) => {
+  console.log('A connection has been created with' + socket.id);
+  socket.on('Change', (changes) => {
+    SocketIO.sockets.emit('Change', changes);
+  });
+  socket.on('Create', (newData) => {
+    SocketIO.sockets.emit('Create', newData);
+  })
+})
 server.on("error", onError);
 server.on("listening", onListening);
 

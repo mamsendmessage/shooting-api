@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const LaneImp = require("../implementation/laneImplementation");
+const TicketImp = require("../implementation/ticketImplementation")
 const LoggerService = require("../services/LoggerService");
 const Response = require('../models/Response');
 
@@ -81,6 +82,24 @@ router.delete("/:Id", async (req, res, next) => {
       res.status(200).json(Response.GetSuccessResponse(0));
     } else {
       res.status(200).json(Response.GetErrorResponse(-1));
+    }
+  } catch (error) {
+    LoggerService.Log(error);
+    res.status(500).json(Response.GetGeneralError());
+  }
+});
+
+router.post("/ticket", async (req, res, next) => {
+  try {
+    let tTickets = [];
+    if (req.query && req.query.laneId) {
+      const tLaneId = req.query.laneId;
+      tTickets = await TicketImp.GetTicketByLaneId(tLaneId);
+    }
+    if (tTickets) {
+      res.status(200).json(Response.GetSuccessResponse(tTickets));
+    } else {
+      res.status(200).json(Response.GetErrorResponse(-100));
     }
   } catch (error) {
     LoggerService.Log(error);

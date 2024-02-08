@@ -1,7 +1,7 @@
 const { toDateFromDB } = require("./CommonMethods");
 
 class Player {
-    constructor(ID, Name, NationalityId, Age, MobileNumber, Photo, CreationDate, pDocument) {
+    constructor(ID, Name, NationalityId, Age, MobileNumber, Photo, CreationDate, pDocument, PassportsNo, MembershipNo, MembershipExpiry) {
         this.ID = ID;
         this.Name = Name;
         this.NationalityId = NationalityId;
@@ -10,6 +10,9 @@ class Player {
         this.Photo = Photo && Photo.length > 0 ? Photo : null;
         this.Document = pDocument && pDocument.length > 0 ? pDocument : '';
         this.CreationDate = toDateFromDB(CreationDate);
+        this.PassportsNo = PassportsNo;
+        this.MembershipNo = MembershipNo;
+        this.MembershipExpiry = toDateFromDB(MembershipExpiry);
     }
 }
 

@@ -15,12 +15,9 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
 
 app.use(function (req, res, next) {
-  if(req.method =='OPTION'){
-    res.send(200);
-  }
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  res.header('Access-Control-Allow-Methods', 'POST, GET');
+  res.header('Access-Control-Allow-Methods', 'POST, GET','OPTIONS','OPTION');
   next();
 });
 app.use(express.static('images'))
@@ -28,7 +25,7 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"))); 
 
 app.use("/", indexRouter);
 app.use("/anonymous", anonymousMessageAPI);
