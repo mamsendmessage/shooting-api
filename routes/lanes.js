@@ -94,8 +94,12 @@ router.post("/ticket", async (req, res, next) => {
   try {
     let tTickets = [];
     if (req.query && req.query.laneId) {
+      let tAllStatuses = false;
+      if (req.query.allStatus && req.query.allStatus == 0) {
+        tAllStatuses = true;
+      }
       const tLaneId = req.query.laneId;
-      tTickets = await TicketImp.GetTicketByLaneId(tLaneId);
+      tTickets = await TicketImp.GetTicketByLaneId(tLaneId, tAllStatuses);
     }
     if (tTickets) {
       res.status(200).json(Response.GetSuccessResponse(tTickets));
@@ -137,5 +141,19 @@ router.post("/ticket/:Id", async (req, res, next) => {
   }
 });
 
+router.post("/ticket/updateState", async (req, res, next) => {
+  try {
+    let tTicket = req.body;
+    const tResult = await TicketImp.UpdateTicketState(tTicket);
+    if (tResult == 0) {
+      res.status(200).json(Response.GetSuccessResponse(0));
+    } else {
+      res.status(200).json(Response.GetErrorResponse(-1));
+    }
+  } catch (error) {
+    LoggerService.Log(error);
+    res.status(500).json(Response.GetGeneralError());
+  }
+});
 
 module.exports = router;

@@ -64,18 +64,24 @@ class Ticketmplementation {
   }
 
 
-  static async GetTicketByLaneId(planeId) {
+  static async GetTicketByLaneId(planeId, pAllStatuses) {
     try {
       const tPlayers = [];
-
+      let tDateSet;
       const params = [
         { name: "LaneId", value: planeId },
       ];
-
-      const tDateSet = await DatabaseManager.ExecuteQuery(
-        "SELECT * FROM X_TodayPlayers WHERE [LaneId] = @LaneId and ([State] = 1 or [State] = 4)",
-        params
-      );
+      if (pAllStatuses) {
+        tDateSet = await DatabaseManager.ExecuteQuery(
+          "SELECT * FROM X_TodayPlayers WHERE [LaneId] = @LaneId",
+          params
+        );
+      } else {
+        tDateSet = await DatabaseManager.ExecuteQuery(
+          "SELECT * FROM X_TodayPlayers WHERE [LaneId] = @LaneId and ([State] = 1 or [State] = 4)",
+          params
+        );
+      }
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tData = tDateSet[index];
@@ -167,18 +173,14 @@ class Ticketmplementation {
       }
 
       //check numbers of waiting tickits 
-      var AllTickets = await this.GetAllTickets();
-      var WatingTickets = AllTickets.filter((item) => item.State == 0);
-
-
-
-
-
-      var tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
-      if (WatingTickets.length >= 5)
+      const AllTickets = await this.GetAllTickets();
+      const WatingTickets = AllTickets.filter((item) => item.State == 0 && item.LaneId == ticket.LaneId);
+      const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
+      if (WatingTickets.length > 0) {
         tTicket.State = 2;
-      else
+      } else {
         tTicket.State = 0;
+      }
       tTicket.UserId = tPlayer.ID;
       tTicket.UserType = 1;
       tTicket.TicketType = tFoundPlayer ? 2 : 1;
