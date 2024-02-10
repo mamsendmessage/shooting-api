@@ -73,7 +73,7 @@ class Ticketmplementation {
       ];
 
       const tDateSet = await DatabaseManager.ExecuteQuery(
-        "SELECT * FROM X_TodayPlayers WHERE [LaneId] = @LaneId and ([State] = 1 or [State] = 0)",
+        "SELECT * FROM X_TodayPlayers WHERE [LaneId] = @LaneId and ([State] = 1 or [State] = 4)",
         params
       );
       if (tDateSet) {
