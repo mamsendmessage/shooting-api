@@ -30,6 +30,25 @@ class Ticketmplementation {
     }
   }
 
+  static async GetAllTimePlayers() {
+    try {
+      const tPlayers = [];
+      const tDateSet = await DatabaseManager.ExecuteQuery(
+        "SELECT * FROM X_AllTimePlayers"
+      );
+      if (tDateSet) {
+        for (let index = 0; index < tDateSet.length; index++) {
+          const tData = tDateSet[index];
+          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId, tData.CreationDate));
+        }
+      }
+      return tPlayers;
+    } catch (error) {
+      LoggerService.Log(error);
+      return undefined;
+    }
+  }
+
   static async GetAllTickets() {
     try {
       let tTickets = CacheService.cache.tickets;
@@ -44,10 +63,23 @@ class Ticketmplementation {
     }
   }
 
-  static GetTicketByID(ID) {
+  static async GetTicketByID(ID) {
     try {
-      const tTicket = CacheService.cache.tickets.find((item) => item.ID == ID);
-      return tTicket;
+      const tTickets = [];
+      const params = [
+        { name: "ID", value: ID },
+      ];
+      let tDateSet = await DatabaseManager.ExecuteQuery(
+        "SELECT * FROM Ticket WHERE [ID] = @ID",
+        params
+      );
+      if (tDateSet) {
+        for (let index = 0; index < tDateSet.length; index++) {
+          const tData = tDateSet[index];
+          tTickets.push(new Ticket(tData.ID, tData.UserId, tData.LaneId, tData.GameTypeId, tData.PlayerLevelId, tData.SessionTimeId, tData.State, tData.TicketType, tData.UserType, tData.CreationDate, tData.LastModificationDate));
+        }
+      }
+      return tTickets[0];
     } catch (error) {
       LoggerService.Log(error);
       return undefined;

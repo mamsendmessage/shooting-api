@@ -20,6 +20,10 @@ router.get("/", async (req, res, next) => {
     } else if (req.query && req.query.userId) {
       const tUserId = req.query.userId;
       tTickets = TicketImp.GetTicketByUserId(tUserId);
+    } else if (req.query && req.query.alltime) {
+      if (req.query.alltime == 1) {
+        tTickets = await TicketImp.GetAllTimePlayers();
+      }
     } else {
       tTickets = await TicketImp.GetAllTickets();
     }

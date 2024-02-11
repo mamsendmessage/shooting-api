@@ -363,3 +363,21 @@ INSERT INTO [Skeet] VALUES ('s9')
 INSERT INTO [Skeet] VALUES ('s10')
 INSERT INTO [Skeet] VALUES ('LH')
 INSERT INTO [Skeet] VALUES ('HH')
+
+
+CREATE VIEW [dbo].[X_AllTimePlayers] AS SELECT 
+[Player].[ID] As UserId,
+[Ticket].[ID] As TicketId,
+[Player].[Photo],
+[Player].[Name],
+[Ticket].[CreationDate],
+[Ticket].[State],
+[PlayerLevel].[Name] AS PlayerLevel,
+[GameType].[Name] as GameType,
+[Ticket].[TicketType],
+[Ticket].[UserType],
+[Ticket].[LaneId] 
+FROM Ticket
+JOIN [Player] ON [Ticket].UserId = [Player].[ID]
+JOIN [PlayerLevel] ON [PlayerLevel].[ID] = [Ticket].[PlayerLevelId]
+JOIN [GameType] ON [Ticket].[GameTypeId] = [GameType].[ID] 
