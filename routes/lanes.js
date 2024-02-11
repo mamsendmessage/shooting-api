@@ -5,6 +5,7 @@ const TicketImp = require("../implementation/ticketImplementation")
 const LoggerService = require("../services/LoggerService");
 const Response = require('../models/Response');
 const PlayerImplementation = require("../implementation/playerImplementation");
+const ConfigurationImplementation = require("../implementation/configurationImplementation");
 
 router.get("/", async (req, res, next) => {
   try {
@@ -141,7 +142,7 @@ router.post("/ticket/:Id", async (req, res, next) => {
   }
 });
 
-router.post("/ticket/updateState", async (req, res, next) => {
+router.post("/updateState", async (req, res, next) => {
   try {
     let tTicket = req.body;
     const tResult = await TicketImp.UpdateTicketState(tTicket);
@@ -149,6 +150,22 @@ router.post("/ticket/updateState", async (req, res, next) => {
       res.status(200).json(Response.GetSuccessResponse(0));
     } else {
       res.status(200).json(Response.GetErrorResponse(-1));
+    }
+  } catch (error) {
+    LoggerService.Log(error);
+    res.status(500).json(Response.GetGeneralError());
+  }
+});
+
+router.post("/nationalities", async (req, res, next) => {
+  try {
+    let tNationalities = [];
+    tNationalities = await ConfigurationImplementation.GetAllNationalities();
+    tNationalities = tNationalities && tNationalities.length > 0 ? tNationalities : null;
+    if (tNationalities) {
+      res.status(200).json(Response.GetSuccessResponse(tNationalities));
+    } else {
+      res.status(200).json(Response.GetErrorResponse(-100));
     }
   } catch (error) {
     LoggerService.Log(error);
