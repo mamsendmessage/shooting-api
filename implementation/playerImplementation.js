@@ -3,10 +3,10 @@ const CommonMethods = require("../models/CommonMethods");
 const { isToday } = require("../models/CommonMethods");
 const Constant = require("../models/Constant");
 const Player = require("../models/Player");
-const Ticket = require("../models/Ticket");
 const CacheService = require("../services/CacheService");
 const LoggerService = require("../services/LoggerService");
 const Ticketmplementation = require("./ticketImplementation");
+
 class PlayerImplementation {
 
   static async GetAllPlayersFromDB() {
@@ -74,32 +74,42 @@ class PlayerImplementation {
 
   static async AddPlayer(player) {
     try {
-
-      player.Photo = CommonMethods.SavePlayerImage(player.Photo);
-      player.Document = CommonMethods.SavePlayerDocument(player.Document);
-      const tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, new Date(), player.Document);
-      const params = [
-        { name: "Name", value: tPlayer.Name },
-        { name: "NationalityId", value: tPlayer.NationalityId },
-        { name: "Age", value: tPlayer.Age },
-        { name: "MobileNumber", value: tPlayer.MobileNumber },
-        { name: "Photo", value: tPlayer.Photo },
-        { name: "Document", value: tPlayer.Document },
-        { name: "CreationDate", value: tPlayer.CreationDate, isDate: true },
-      ];
-
-      const tID = await DatabaseManager.ExecuteNonQuery(
-        `INSERT INTO [Player] ([Name],[NationalityId],[Age],[MobileNumber],[Photo],[Document],[CreationDate]) OUTPUT Inserted.ID VALUES
-        (@Name, @NationalityId, @Age, @MobileNumber, @Photo, @Document,@CreationDate)`,
-        params
-      );
       let tResult;
-      if (tID > 0) {
-        tResult = tID;
-        tPlayer.ID = tID;
-        CacheService.cache.players.push(tPlayer);
+      let tPlayer = null;
+      const tFoundPlayer = CacheService.cache.players.find((item) => item.MobileNumber == player.MobileNumber);
+      if (tFoundPlayer) {
+        tPlayer = new Player(tFoundPlayer.ID, tFoundPlayer.Name, tFoundPlayer.NationalityId, tFoundPlayer.Age, tFoundPlayer.MobileNumber, tFoundPlayer.Photo, tFoundPlayer.CreationDate, tFoundPlayer.Document,
+          tFoundPlayer.PassportsNo, tFoundPlayer.MembershipNo, tFoundPlayer.MembershipExpiry);
+        tResult = Constant.AlreadyExist;
       } else {
-        tResult = Constant.ERROR;
+        player.Photo = CommonMethods.SavePlayerImage(player.Photo);
+        player.Document = CommonMethods.SavePlayerDocument(player.Document);
+        tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, new Date(), player.Document,
+          player.PassportsNo, player.MembershipNo, player.MembershipExpiry);
+        const tPlayerarams = [
+          { name: "Name", value: tPlayer.Name },
+          { name: "NationalityId", value: tPlayer.NationalityId },
+          { name: "Age", value: tPlayer.Age },
+          { name: "MobileNumber", value: tPlayer.MobileNumber },
+          { name: "Photo", value: tPlayer.Photo },
+          { name: "Document", value: tPlayer.Document },
+          { name: "CreationDate", value: tPlayer.CreationDate, isDate: true },
+          { name: "PassportsNo", value: tPlayer.PassportsNo },
+          { name: "MembershipNo", value: tPlayer.MembershipNo },
+          { name: "MembershipExpiry", value: new Date(tPlayer.MembershipExpiry), isDate: true },
+        ];
+        const tPlayerID = await DatabaseManager.ExecuteNonQuery(
+          `INSERT INTO [Player] ([Name],[NationalityId],[Age],[MobileNumber],[Photo],[Document],[CreationDate],[PassportsNo],[MembershipNo],[MembershipExpiry]) OUTPUT Inserted.ID VALUES
+          (@Name, @NationalityId, @Age, @MobileNumber, @Photo,@Document, @CreationDate, @PassportsNo,@MembershipNo, @MembershipExpiry)`,
+          tPlayerarams
+        );
+        if (tPlayerID > 0) {
+          tResult = Constant.SUCCESS;
+          tPlayer.ID = tPlayerID;
+          CacheService.cache.players.push(tPlayer);
+        } else {
+          tResult = Constant.ERROR;
+        }
       }
       return tResult;
     } catch (error) {

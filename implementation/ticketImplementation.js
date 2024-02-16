@@ -258,7 +258,10 @@ class Ticketmplementation {
 
   static async AddTicket(ticket) {
     try {
+      
       const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
+      tTicket.UserType = 1;
+      tTicket.TicketType = 2;
       const params = [
         { name: "UserId", value: tTicket.UserId },
         { name: "LaneId", value: tTicket.LaneId },
