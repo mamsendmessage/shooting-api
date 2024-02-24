@@ -51,7 +51,7 @@ class CommunicationService {
     static async httpGet(pUrl) {
         try {
             console.log('Call API at ' + new Date().toTimeString());
-            // const response = await axios.get(pUrl);
+            const response = await axios.get(pUrl);
         } catch (error) {
             console.error('API call failed:', error);
         }

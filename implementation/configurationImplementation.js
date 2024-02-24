@@ -123,7 +123,7 @@ class ConfigurationImplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tSkeet = tDateSet[index];
-          tSkeets.push(new Skeet(tSkeet.ID, tSkeet.Name));
+          tSkeets.push(new Skeet(tSkeet.ID, tSkeet.Name, tSkeet.API));
         }
       }
       return tSkeets;
