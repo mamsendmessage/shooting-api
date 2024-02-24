@@ -263,10 +263,12 @@ INSERT INTO Nationality ([NumCode], [Alpha2Code], [Alpha3Code], [ShortName_en], 
 
 GO
 
-CREATE TABLE [PlayerLevel] ( [ID] [bigint] Primary KEY IDENTITY(1,1) NOT NULL,[Name] [nvarchar] (max) NOT NULL);
-INSERT INTO [PlayerLevel] VALUES ('Beginner')
-INSERT INTO [PlayerLevel] VALUES ('Intermediate')
-INSERT INTO [PlayerLevel] VALUES ('Professional Arabia')
+
+
+CREATE TABLE [PlayerLevel] ( [ID] [bigint] Primary KEY IDENTITY(1,1) NOT NULL,[Name] [nvarchar] (max) NOT NULL,[Image] [nvarchar] (max) NOT NULL);
+INSERT INTO [PlayerLevel] VALUES ('Beginner','assets/img/pyallow.svg')
+INSERT INTO [PlayerLevel] VALUES ('Intermediate','assets/img/pblue.svg')
+INSERT INTO [PlayerLevel] VALUES ('Professional','assets/img/pgreen.svg')
 
 GO
 
@@ -287,13 +289,36 @@ INSERT INTO [Lane] VALUES ('Lane 4',4, GETDATE())
 INSERT INTO [Lane] VALUES ('Lane 5',5, GETDATE())
 
 GO
+CREATE TABLE [Screen] ([ID] [bigint] Primary KEY IDENTITY(1,1) NOT NULL,[Name] [nvarchar] (max) NOT NULL);
+INSERT INTO  [Screen] VALUES ('Dashboard')
+INSERT INTO  [Screen] VALUES ('Player')
+INSERT INTO  [Screen] VALUES ('Receptionist')
+INSERT INTO  [Screen] VALUES ('Ticket')
+INSERT INTO  [Screen] VALUES ('Settings')
+INSERT INTO  [Screen] VALUES ('Admin Consloe')
 
+CREATE TABLE [Role] ([ID] [bigint] Primary KEY IDENTITY(1,1) NOT NULL,[Name] [nvarchar] (max) NOT NULL);
+INSERT INTO [Role] VALUES ('Full Role')
+GO
+CREATE TABLE [Permission] ([ID] [bigint] Primary KEY IDENTITY(1,1) NOT NULL, RoleId bigint NOT NULL, ScreenId bigint NOT NULL
+FOREIGN KEY (RoleId) REFERENCES [Role]([ID]),
+FOREIGN KEY (ScreenId) REFERENCES [Screen]([ID])
+);
+GO
+INSERT INTO [Permission] VALUES (1,1)
+INSERT INTO [Permission] VALUES (1,2)
+INSERT INTO [Permission] VALUES (1,3)
+INSERT INTO [Permission] VALUES (1,4)
+INSERT INTO [Permission] VALUES (1,5)
+INSERT INTO [Permission] VALUES (1,6)
+GO
 CREATE TABLE [dbo].[User]([ID] [bigint] PRIMARY KEY IDENTITY(1,1) NOT NULL, [Name] [nvarchar](255) NOT NULL,[Email] [nvarchar](500) Unique NOT NULL,[Password] [nvarchar](255) NOT NULL,
-	[MobileNumber] [nvarchar](15) NOT NULL Unique ,[CreationDate] [datetime] NOT NULL)
+	[MobileNumber] [nvarchar](255) NOT NULL Unique ,[CreationDate] [datetime] NOT NULL,[RoleId] [bigint] NULL
+		FOREIGN KEY (RoleId) REFERENCES [Role]([ID]))
 
 GO
 
-INSERT INTO [USER] VALUES ('Super Admin','admin@gmail.com','admin','xxxxxx',GETDATE())
+INSERT INTO [USER] VALUES ('Super Admin','admin@hadaf.com','admin','xxxxxxxx',GETDATE(),1)
 
 GO
 CREATE TABLE [dbo].[Player]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [Name] [nvarchar](255) NOT NULL,[NationalityId] int not  NULL, [Age] [int] NULL,
@@ -333,38 +358,40 @@ WHERE CONVERT(varchar(10), [Ticket].[CreationDate], 102)  = CONVERT(varchar(10),
 GO
 CREATE TABLE [Configuration] (
 	ID bigint Primary KEY Identity,
-	[Type] int not null UNIQUE,
+	[Type] [bigint],
 	TimePerShot int not null,
 	TimeToRefill int not null,
 	NumberOfSkeets int not null,  
 	Config VARCHAR(MAX) not null
+	FOREIGN KEY ([Type]) REFERENCES PlayerLevel(ID),
 	)
 GO
 
 INSERT INTO  [Configuration] VALUES (1,10,10,1,'{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":[],"API":[]}],"ID":"1"}')
 INSERT INTO  [Configuration] VALUES (2,10,10,1,'{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":[],"API":[]}],"ID":"2"}')
 INSERT INTO  [Configuration] VALUES (3,10,10,1,'{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":[],"API":[]}],"ID":"3"}')
-INSERT INTO  [Configuration] VALUES (4,10,10,1,'{"TimePerShot":10,"TimeToRefill":10,"Configurations":[{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]}]}')
+INSERT INTO  [Configuration] VALUES (null,10,10,1,'{"TimePerShot":10,"TimeToRefill":10,"Configurations":[{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]},{"TimePerShot":10,"TimeToRefill":10,"NumberOfSkeet":1,"Skeets":[{"SkeetID":"","API":[]}]}]}')
 GO
 CREATE TABLE [Skeet](
 	ID bigint Primary KEY Identity,
 	[Name] Varchar(250) not null UNIQUE,
+	[API] Varchar(MAX) not null
 )
 GO
-INSERT INTO [Skeet] VALUES ('s1')
-INSERT INTO [Skeet] VALUES ('s2')
-INSERT INTO [Skeet] VALUES ('s3')
-INSERT INTO [Skeet] VALUES ('s4')
-INSERT INTO [Skeet] VALUES ('s5')
-INSERT INTO [Skeet] VALUES ('s6')
-INSERT INTO [Skeet] VALUES ('s7')
-INSERT INTO [Skeet] VALUES ('s8')
-INSERT INTO [Skeet] VALUES ('s9')
-INSERT INTO [Skeet] VALUES ('s10')
-INSERT INTO [Skeet] VALUES ('LH')
-INSERT INTO [Skeet] VALUES ('HH')
+INSERT INTO [Skeet] VALUES ('s1','')
+INSERT INTO [Skeet] VALUES ('s2','')
+INSERT INTO [Skeet] VALUES ('s3','')
+INSERT INTO [Skeet] VALUES ('s4','')
+INSERT INTO [Skeet] VALUES ('s5','')
+INSERT INTO [Skeet] VALUES ('s6','')
+INSERT INTO [Skeet] VALUES ('s7','')
+INSERT INTO [Skeet] VALUES ('s8','')
+INSERT INTO [Skeet] VALUES ('s9','')
+INSERT INTO [Skeet] VALUES ('s10','')
+INSERT INTO [Skeet] VALUES ('LH','')
+INSERT INTO [Skeet] VALUES ('HH','')
 
-
+GO
 CREATE VIEW [dbo].[X_AllTimePlayers] AS SELECT 
 [Player].[ID] As UserId,
 [Ticket].[ID] As TicketId,
@@ -381,3 +408,19 @@ FROM Ticket
 JOIN [Player] ON [Ticket].UserId = [Player].[ID]
 JOIN [PlayerLevel] ON [PlayerLevel].[ID] = [Ticket].[PlayerLevelId]
 JOIN [GameType] ON [Ticket].[GameTypeId] = [GameType].[ID] 
+
+GO
+
+CREATE VIEW [dbo].[X_Roles] AS SELECT 
+	[Role].[ID] AS [RoleId],
+    [Role].[Name] AS [Role],
+    STRING_AGG([Screen].[Name], ',') AS [Screens]
+FROM 
+    [Permission]
+JOIN 
+    [Role] ON [Permission].[RoleId] = [Role].[ID]
+JOIN 
+    [Screen] ON [Permission].[ScreenId] = [Screen].[ID] 
+GROUP BY 
+    [Role].[Name],[Role].[ID]
+GO

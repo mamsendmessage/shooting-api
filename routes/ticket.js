@@ -98,7 +98,6 @@ router.post("/updateState", async (req, res, next) => {
 });
 
 
-
 router.delete("/:Id", async (req, res, next) => {
   try {
     let tID = req.params.Id;

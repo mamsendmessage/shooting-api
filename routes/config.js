@@ -3,6 +3,7 @@ var router = express.Router();
 const ConfigImp = require("../implementation/configurationImplementation");
 const LoggerService = require("../services/LoggerService");
 const Response = require('../models/Response');
+const CommunicationService = require("../implementation/communicationService");
 
 router.get("/", async (req, res, next) => {
   try {
@@ -24,6 +25,21 @@ router.get("/", async (req, res, next) => {
     res.status(500).json(Response.GetGeneralError());
   }
 });
+
+router.post("/AddConfig", async (req, res, next) => {
+  let tConfig = req.body.config;
+  let tLevelName = req.body.level;
+  let tImagePath = req.body.image;
+
+  tConfig.ID = req.params.Id;
+  const tResult = await ConfigImp.AddNewConfiguration(tLevelName, tImagePath, tConfig);
+  if (tResult == 0) {
+    res.status(200).json(Response.GetSuccessResponse(0));
+  } else {
+    res.status(200).json(Response.GetErrorResponse(-1));
+  }
+})
+
 
 router.get("/skeets", async (req, res, next) => {
   try {
@@ -56,21 +72,6 @@ router.get("/sessions-time", async (req, res, next) => {
   }
 });
 
-router.get("/levels", async (req, res, next) => {
-  try {
-    let tLevels = [];
-    tLevels = await ConfigImp.GetAllPlayerLevels();
-    tLevels = tLevels && tLevels.length > 0 ? tLevels : null;
-    if (tLevels) {
-      res.status(200).json(Response.GetSuccessResponse(tLevels));
-    } else {
-      res.status(200).json(Response.GetErrorResponse(-100));
-    }
-  } catch (error) {
-    LoggerService.Log(error);
-    res.status(500).json(Response.GetGeneralError());
-  }
-});
 
 router.get("/nationalities", async (req, res, next) => {
   try {

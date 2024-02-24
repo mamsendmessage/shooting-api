@@ -12,7 +12,7 @@ router.post("/Login", async (req, res, next) => {
     const tUser = await AuthImp.Login(tUserInfo.Username, tUserInfo.Password);
     if (tUser) {
       const tToken = AuthenticationManager.generateAccessToken(tUser);
-      const tAuthenticatedUser = new AuthenticatedUser(tUser.ID, tToken, tUser.Name)
+      const tAuthenticatedUser = new AuthenticatedUser(tUser.ID, tToken, tUser.Name, tUser.RoleId)
       res.status(200).json(Response.GetSuccessResponse(tAuthenticatedUser));
     } else {
       res.status(200).json(Response.GetErrorResponse(-100, "Invaild username or password"));
@@ -23,19 +23,5 @@ router.post("/Login", async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
-  try {
-    let tUser = req.body;
-    const tResult = await AuthImp.Register(tUser);
-    if (tResult == 0) {
-      res.status(200).json(Response.GetSuccessResponse(0));
-    } else {
-      res.status(200).json(Response.GetErrorResponse(-1));
-    }
-  } catch (error) {
-    LoggerService.Log(error);
-    res.status(500).json(Response.GetGeneralError());
-  }
-});
 
 module.exports = router;

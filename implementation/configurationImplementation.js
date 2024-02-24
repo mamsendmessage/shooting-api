@@ -7,6 +7,7 @@ const PlayerLevel = require("../models/PlayerLevel");
 
 
 const Nationality = require("../models/Nationality");
+const Constant = require("../models/Constant");
 class ConfigurationImplementation {
 
   static async GetAllConfigurations() {
@@ -38,7 +39,7 @@ class ConfigurationImplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tConfiguration = tDateSet[index];
-          tConfigurations.push(new Configuration(tConfiguration.ID, tConfiguration.Type, tConfiguration.TimePerShot, tConfiguration.TimeToRefill, tConfiguration.Config));
+          tConfigurations.push(new Configuration(tConfiguration.ID, tConfiguration.Type, tConfiguration.TimePerShot, tConfiguration.TimeToRefill, tConfiguration.NumberOfSkeets, tConfiguration.Config));
         }
       }
       return tConfigurations[0];
@@ -48,10 +49,53 @@ class ConfigurationImplementation {
     }
   }
 
+  static async AddNewConfiguration(pLevelName, pImagePath, pConfiguration) {
+    try {
+
+      let tResult;
+      const transaction = await DatabaseManager.BeginTransaction();
+      const tLevelQuery = `INSERT INTO [PlayerLevel] ([Name],[Image])  OUTPUT Inserted.ID Values (@Name,@Image)`;
+      const tLevelParams = [
+        { name: "Name", value: pLevelName },
+        { name: "Image", value: pImagePath }
+      ];
+      const tPlayerLevelId = await DatabaseManager.ExecuteNonQuery(tLevelQuery, tLevelParams, transaction)
+
+      if (tPlayerLevelId > 0) {
+        const tConfiguration = new Configuration(pConfiguration.ID, pConfiguration.Type, pConfiguration.TimePerShot, pConfiguration.TimeToRefill, pConfiguration.NumberOfSkeet, pConfiguration.config)
+        const params = [
+          { name: "TimePerShot", value: tConfiguration.TimePerShot },
+          { name: "TimeToRefill", value: tConfiguration.TimeToRefill },
+          { name: "NumberOfSkeets", value: tConfiguration.NumberOfSkeet },
+          { name: "Type", value: tPlayerLevelId },
+          { name: "Config", value: tConfiguration.Config },
+        ];
+        const tConfigQuery = `INSERT INTO [dbo].[Configuration]([Type],[TimePerShot],[TimeToRefill],[NumberOfSkeets],[Config]) VALUES (@Type,@TimePerShot,@TimeToRefill,@NumberOfSkeets,@Config)`;
+        tResult = await DatabaseManager.ExecuteNonQuery(
+          tConfigQuery,
+          params,
+          transaction
+        );
+        if (tResult == Constant.SUCCESS) {
+          await DatabaseManager.CommitTransaction(transaction);
+        } else {
+          await DatabaseManager.RollbackTransaction(transaction);
+        }
+      } else {
+        await DatabaseManager.RollbackTransaction(transaction);
+      }
+      return tResult;
+    } catch (error) {
+      LoggerService.Log(error);
+      return null;
+    }
+  }
+
+
   static async UpdateConfigurationByID(pConfiguration) {
     try {
 
-      const tConfiguration = new Configuration(pConfiguration.ID, pConfiguration.Type, pConfiguration.TimePerShot, pConfiguration.TimeToRefill,pConfiguration.NumberOfSkeets, pConfiguration.config)
+      const tConfiguration = new Configuration(pConfiguration.ID, pConfiguration.Type, pConfiguration.TimePerShot, pConfiguration.TimeToRefill, pConfiguration.NumberOfSkeets, pConfiguration.config)
       const params = [
         { name: "TimePerShot", value: tConfiguration.TimePerShot },
         { name: "TimeToRefill", value: tConfiguration.TimeToRefill },
@@ -134,7 +178,7 @@ class ConfigurationImplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const Level = tDateSet[index];
-          tLevels.push(new PlayerLevel(Level.ID, Level.Name));
+          tLevels.push(new PlayerLevel(Level.ID, Level.Name, Level.Image));
         }
       }
       return tLevels;
