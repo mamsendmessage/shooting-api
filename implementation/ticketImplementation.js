@@ -7,7 +7,9 @@ const X_TodayPlayer = require("../models/X_TodayPlayer");
 const Player = require("../models/Player");
 const CommonMethods = require("../models/CommonMethods");
 const CommunicationService = require("./communicationService");
+
 class Ticketmplementation {
+
 
   static async GetAllTicketsFromDB() {
     try {
@@ -38,7 +40,7 @@ class Ticketmplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tData = tDateSet[index];
-          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId, tData.CreationDate));
+          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId, tData.LaneName, tData.LaneNumber, tData.CreationDate));
         }
       }
       return tPlayers;
@@ -116,7 +118,7 @@ class Ticketmplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tData = tDateSet[index];
-          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId, tData.CreationDate));
+          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId,tData.LaneName, tData.LaneNumber, tData.CreationDate));
         }
       }
       return tPlayers;
@@ -145,7 +147,7 @@ class Ticketmplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tData = tDateSet[index];
-          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId, tData.CreationDate));
+          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId,tData.LaneName, tData.LaneNumber, tData.CreationDate));
         }
       }
       return tPlayers;
@@ -331,6 +333,45 @@ class Ticketmplementation {
     }
   }
 
+  static async ResumeTicketState(ticket) {
+    try {
+      const tResult = this.UpdateTicketState(ticket);
+      if (tResult == 0) {
+        CommunicationService.ResumeLaneQueue();
+      }
+    } catch (error) {
+      LoggerService.Log(error);
+      return Constant.ERROR;
+    }
+  }
+
+  static async FinishTicket(pTicketId) {
+    try {
+      const tNow = new Date();
+      const params = [
+        { name: "State", value: 3 },
+        { name: "ID", value: pTicketId },
+        { name: "LastModificationDate", value: tNow },
+      ];
+      const tResult = await DatabaseManager.ExecuteNonQuery(
+        "UPDATE [Ticket] SET [State] = @State WHERE [ID] = @ID",
+        params
+      );
+      if (tResult == 0) {
+
+        let tTicketIndex = CacheService.cache.tickets.findIndex((item) => item.ID == pTicketId);
+        CacheService.cache.tickets[tTicketIndex].State = 3;
+        CacheService.cache.tickets[tTicketIndex].LastModificationDate = tNow;
+      }
+      return tResult;
+      if (tResult == 0) {
+        CommunicationService.ResumeLaneQueue();
+      }
+    } catch (error) {
+      LoggerService.Log(error);
+      return Constant.ERROR;
+    }
+  }
 
   static async UpdateTicketState(ticket) {
     try {
@@ -350,7 +391,11 @@ class Ticketmplementation {
         CacheService.cache.tickets[tTicketIndex] = tTicket;
         if (tTicket.State == 1) {
           const tPlayerLevelId = tTicket.PlayerLevelId;
-          CommunicationService.startGame(ticket.LaneId, tPlayerLevelId);
+          CommunicationService.startGame(ticket.LaneId, tPlayerLevelId, ticket.ID);
+        } else if (tTicket.State == 3) {
+          CommunicationService.DeleteLaneQueue(ticket.LaneId);
+        } else if (tTicket.State == 6) {
+          CommunicationService.PauseLaneQueue(ticket.LaneId);
         }
       }
       return tResult;

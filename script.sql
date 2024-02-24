@@ -349,11 +349,14 @@ CREATE VIEW [X_TodayPlayers] AS SELECT
 [GameType].[Name] as GameType,
 [Ticket].[TicketType],
 [Ticket].[UserType],
-[Ticket].[LaneId] 
+[Ticket].[LaneId],
+[Lane].[Number] As LaneNumber,
+[Lane].[Name] As LaneName
 FROM Ticket
 JOIN [Player] ON [Ticket].UserId = [Player].[ID]
 JOIN [PlayerLevel] ON [PlayerLevel].[ID] = [Ticket].[PlayerLevelId]
-JOIN [GameType] ON [Ticket].[GameTypeId] = [GameType].[ID] 
+JOIN [GameType] ON [Ticket].[GameTypeId] = [GameType].[ID]
+JOIN [Lane] ON [Lane].ID = [Ticket].[LaneId]
 WHERE CONVERT(varchar(10), [Ticket].[CreationDate], 102)  = CONVERT(varchar(10), getdate(), 102)
 GO
 CREATE TABLE [Configuration] (

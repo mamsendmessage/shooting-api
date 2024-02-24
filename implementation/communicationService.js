@@ -1,10 +1,52 @@
 const axios = require('axios');
 const socket = require('socket.io');
 const ConfigurationImplementation = require('./configurationImplementation');
-
+const Queue = require('../models/Queue');
 class CommunicationService {
+    static lanesQueues = [];
+    constructor() {
+        this.lanesQueues = [];
+    }
 
-    lanes = [];
+    static AddLaneQueue(pLaneId, pSkeets, pTicketId) {
+        const tQueue = new Queue(pSkeets);
+        const tLane = { ID: pLaneId, queue: tQueue, state: 1, ticketId: pTicketId }
+        CommunicationService.lanesQueues.push(tLane);
+    }
+
+    static IsLaneLaneQueueEmpty(pLaneId) {
+        const tLane = this.lanesQueues.find((item) => item.ID == pLaneId);
+        if (tLane) {
+            if (tLane.queue.isEmpty()) {
+                this.SocketIO.sockets.emit('FinishTicket', { laneId: pLaneId, ticketId: tLane.ticketId });
+                return true;
+            }
+            return false;
+        } else {
+            return false;
+        }
+    }
+
+    static DeleteLaneQueue(pLaneId) {
+        this.lanesQueues = this.lanesQueues.filter((item) => item.ID != pLaneId);
+    }
+
+    static GetLane(pLaneId) {
+        const tLane = this.lanesQueues.find((item) => item.ID == pLaneId);
+        return tLane;
+    }
+
+    static PauseLaneQueue(pLaneId) {
+        const tLane = this.lanesQueues.find((item) => item.ID == pLaneId);
+        tLane.state = -1;
+
+    }
+
+    static ResumeLaneQueue(pLaneId) {
+        const tLane = this.lanesQueues.find((item) => item.ID == pLaneId);
+        tLane.state = 1;
+
+    }
 
     static async httpGet(pUrl) {
         try {
@@ -15,75 +57,54 @@ class CommunicationService {
         }
     }
 
-    static async startGame(planeId, pLevelId) {
-
-        if (lanes.find((item) => item.ID == pLevelId)) {
-
+    static GetLaneQueue(planeId) {
+        const tLane = this.lanesQueues.find((item) => item.ID == planeId);
+        if (tLane) {
+            return tLane;
         } else {
-            lanes.push({ ID: planeId, queue: {} });
+            const tQueue = new Queue();
+            const tLane = { ID: planeId, queue: tQueue }
+            lanes.push(tLane);
+            return tLane;
         }
-
-        const tQueue = [];
-        const tConfig = await ConfigurationImplementation.GetAllConfigurationByType(pLevelId);
-        const tParsedConfig = JSON.parse(tConfig.Config);
-        const skeets = [
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            'api_endpoint_1',
-            'api_endpoint_2',
-            // Add more API endpoints here as needed
-        ];
-        tQueue = tParsedConfig.Skeets;
-        let callCount = 0;
-        let apiIndex = 0;
-        this.callAPI(callCount, apiIndex, tConfig.TimePerShot, tConfig.TimeToRefill, planeId, tParsedConfig.Skeets)
     }
 
-    static async callAPI(callCount, apiIndex, timePerShoot, timeToRefill, planeId, skeets) {
+    static async startGame(pLaneId, pLevelId, pTicketId) {
+        const tConfig = await ConfigurationImplementation.GetAllConfigurationByType(pLevelId);
+        const tParsedConfig = JSON.parse(tConfig.Config);
+        this.AddLaneQueue(pLaneId, tParsedConfig.Skeets, pTicketId);
+        let callCount = 0;
+        this.callAPI(callCount, tConfig.TimePerShot, tConfig.TimeToRefill, pLaneId)
+    }
 
-        if (apiIndex == skeets.length) {
+    static async callAPI(callCount, timePerShoot, timeToRefill, pLaneId) {
+
+        let tSkeets;
+        if (this.IsLaneLaneQueueEmpty(pLaneId)) {
             return;
+        } else {
+            const tLane = this.GetLaneQueue(pLaneId);
+            if (tLane.state == 1) {
+                tSkeets = tLane.queue.dequeue();
+            }
         }
-
-        const tSkeet = skeets[apiIndex];
-        for (let index = 0; index < tSkeet.API.length; index++) {
-            const tUrl = tSkeet.API[index];
-            await this.httpGet(tUrl);
+        if (tSkeets) {
+            for (let index = 0; index < tSkeets.API.length; index++) {
+                const tUrl = tSkeets.API[index];
+                await this.httpGet(tUrl);
+            }
         }
         callCount++;
-        apiIndex = (apiIndex + 1) % skeets.length;
         // After every 2 calls, wait an additional 15 seconds
         if (callCount % 2 === 0) {
             setTimeout(async () => {
-                await this.callAPI(callCount, apiIndex, timePerShoot, timeToRefill, planeId, skeets);
-                this.SocketIO.sockets.emit('TimeUpdate', { laneId: planeId, timer: timeToRefill });
+                await this.callAPI(callCount, timePerShoot, timeToRefill, pLaneId);
+                this.SocketIO.sockets.emit('TimeUpdate', { laneId: pLaneId, timer: timeToRefill });
                 // emit event to lane page
             }, timeToRefill * 1000);
         } else {
             setTimeout(async () => {
-                await this.callAPI(callCount, apiIndex, timePerShoot, timeToRefill, planeId, skeets);
+                await this.callAPI(callCount, timePerShoot, timeToRefill, pLaneId);
             }, timePerShoot * 1000);
         }
     }

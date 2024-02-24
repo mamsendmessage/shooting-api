@@ -82,6 +82,21 @@ router.post("/newPlayer", async (req, res, next) => {
   }
 });
 
+router.post("/resumeState", async (req, res, next) => {
+  try {
+    let tTicket = req.body;
+    const tResult = await TicketImp.UpdateTicketState(tTicket);
+    if (tResult == 0) {
+      res.status(200).json(Response.GetSuccessResponse(0));
+    } else {
+      res.status(200).json(Response.GetErrorResponse(-1));
+    }
+  } catch (error) {
+    LoggerService.Log(error);
+    res.status(500).json(Response.GetGeneralError());
+  }
+});
+
 router.post("/updateState", async (req, res, next) => {
   try {
     let tTicket = req.body;

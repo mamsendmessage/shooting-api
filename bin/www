@@ -99,7 +99,9 @@ function onError(error) {
 /**
  * Event listener for HTTP server "listening" event.
  */
-
+const Event = require('events');
+const Ticketmplementation = require("../implementation/ticketImplementation");
+const event = new Event();
 async function onListening() {
   const tResult = await DatabaseManager.Initialize();
   if (tResult == 0) {
