@@ -17,7 +17,7 @@ class PlayerImplementation {
       );
       for (let index = 0; index < tDateSet.length; index++) {
         const tPlayer = tDateSet[index];
-        tPlayers.push(new Player(tPlayer.ID, tPlayer.Name, tPlayer.NationalityId, tPlayer.Age, tPlayer.MobileNumber, tPlayer.Photo, tPlayer.CreationDate,tPlayer.document,
+        tPlayers.push(new Player(tPlayer.ID, tPlayer.Name, tPlayer.NationalityId, tPlayer.Age, tPlayer.MobileNumber, tPlayer.Photo, tPlayer.CreationDate,tPlayer.Document,
           tPlayer.PassportsNo, tPlayer.MembershipNo, tPlayer.MembershipExpiry));
       }
       return tPlayers;

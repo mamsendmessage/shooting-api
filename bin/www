@@ -99,10 +99,11 @@ function onError(error) {
 /**
  * Event listener for HTTP server "listening" event.
  */
-const Event = require('events');
-const Ticketmplementation = require("../implementation/ticketImplementation");
-const event = new Event();
 async function onListening() {
+  const madge = require('madge');
+  console.log(__dirname);
+  const res = await madge('./app.js');
+  console.log(res.circularGraph());
   const tResult = await DatabaseManager.Initialize();
   if (tResult == 0) {
     await ConfigurationService.loadData();

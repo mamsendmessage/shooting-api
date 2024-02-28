@@ -16,11 +16,12 @@ app.set("view engine", "pug");
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  res.header('Access-Control-Allow-Methods', 'POST, GET', 'OPTIONS', 'OPTION');
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization,content-disposition");
+  res.header('Access-Control-Allow-Methods', 'POST, GET', 'OPTIONS');
   next();
 });
-app.use(express.static('images'))
+app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use('/documents', express.static(path.join(__dirname, 'documents')));
 app.use(logger("dev"));
 
 
@@ -47,4 +48,5 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render("error");
 });
+
 module.exports = app;

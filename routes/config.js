@@ -30,9 +30,9 @@ router.post("/AddConfig", async (req, res, next) => {
   let tConfig = req.body.config;
   let tLevelName = req.body.level;
   let tImagePath = req.body.image;
-
+  let tGameTypeId = req.body.gameTypeId;
   tConfig.ID = req.params.Id;
-  const tResult = await ConfigImp.AddNewConfiguration(tLevelName, tImagePath, tConfig);
+  const tResult = await ConfigImp.AddNewConfiguration(tLevelName, tImagePath, tGameTypeId, tConfig);
   if (tResult == 0) {
     res.status(200).json(Response.GetSuccessResponse(0));
   } else {
@@ -40,6 +40,16 @@ router.post("/AddConfig", async (req, res, next) => {
   }
 })
 
+router.post("/DeleteConfig", async (req, res, next) => {
+  let tID = req.body.id;
+  let tPlayerLevelId = req.body.level;
+  const tResult = await ConfigImp.DeleteConfiguration(tID, tPlayerLevelId);
+  if (tResult == 0) {
+    res.status(200).json(Response.GetSuccessResponse(0));
+  } else {
+    res.status(200).json(Response.GetErrorResponse(-1));
+  }
+})
 
 router.get("/skeets", async (req, res, next) => {
   try {
@@ -56,6 +66,7 @@ router.get("/skeets", async (req, res, next) => {
     res.status(500).json(Response.GetGeneralError());
   }
 });
+
 router.get("/sessions-time", async (req, res, next) => {
   try {
     let tSessionsTime = [];
@@ -71,7 +82,6 @@ router.get("/sessions-time", async (req, res, next) => {
     res.status(500).json(Response.GetGeneralError());
   }
 });
-
 
 router.get("/nationalities", async (req, res, next) => {
   try {

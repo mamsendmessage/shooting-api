@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 const TicketImp = require("../implementation/ticketImplementation");
 const Response = require('../models/Response');
+const Lanemplementation = require("../implementation/laneImplementation");
 
 router.get("/", async (req, res, next) => {
   try {
@@ -100,11 +101,15 @@ router.post("/resumeState", async (req, res, next) => {
 router.post("/updateState", async (req, res, next) => {
   try {
     let tTicket = req.body;
-    const tResult = await TicketImp.UpdateTicketState(tTicket);
+    let tLanes = []
+    if (tTicket.PlayerLevelId == null) {
+      // tLanes = await Lanemplementation.GetAllLanes();
+    }
+    const tResult = await TicketImp.UpdateTicketState(tTicket, tLanes);
     if (tResult == 0) {
       res.status(200).json(Response.GetSuccessResponse(0));
     } else {
-      res.status(200).json(Response.GetErrorResponse(-1));
+      res.status(200).json(Response.GetErrorResponse(tResult));
     }
   } catch (error) {
     LoggerService.Log(error);

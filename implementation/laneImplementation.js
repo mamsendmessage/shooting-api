@@ -3,7 +3,7 @@ const Constant = require("../models/Constant");
 const LoggerService = require("../services/LoggerService");
 const Lane = require("../models/Lane");
 const CacheService = require("../services/CacheService");
-const Ticketmplementation = require("../implementation/ticketImplementation");
+const Ticketmplementation = require("./ticketImplementation");
 class Lanemplementation {
 
   static async GetAllLanesFromDB() {

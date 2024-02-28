@@ -128,7 +128,7 @@ router.post("/DeleteRole", async (req, res, next) => {
 
 router.post("/CreateUser", async (req, res, next) => {
   try {
-    let tUser = req.body.user;
+    let tUser = req.body;
     const tResult = await AuthImp.CreateUser(tUser);
     if (tResult == 0) {
       res.status(200).json(Response.GetSuccessResponse(0));

@@ -32,10 +32,19 @@ class ConfigurationImplementation {
   static async GetAllConfigurationByType(pType) {
     try {
       const tConfigurations = [];
+      let tWhereCluase = '';
       const params = [
-        { name: "Type", value: pType },
+
       ];
-      const tDateSet = await DatabaseManager.ExecuteQuery("SELECT * FROM [Configuration] WHERE [Type] = @Type", params);
+      if (pType) {
+        params.push({ name: "Type", value: pType });
+        tWhereCluase += 'WHERE [Type] = @Type'
+      } else {
+        tWhereCluase += 'WHERE [Type] is null'
+
+      }
+
+      const tDateSet = await DatabaseManager.ExecuteQuery("SELECT * FROM [Configuration] " + tWhereCluase, params);
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tConfiguration = tDateSet[index];
@@ -49,15 +58,16 @@ class ConfigurationImplementation {
     }
   }
 
-  static async AddNewConfiguration(pLevelName, pImagePath, pConfiguration) {
+  static async AddNewConfiguration(pLevelName, pImagePath, pGameTypeId, pConfiguration) {
     try {
 
       let tResult;
       const transaction = await DatabaseManager.BeginTransaction();
-      const tLevelQuery = `INSERT INTO [PlayerLevel] ([Name],[Image])  OUTPUT Inserted.ID Values (@Name,@Image)`;
+      const tLevelQuery = `INSERT INTO [PlayerLevel] ([Name],[GameTypeId],[Image])  OUTPUT Inserted.ID Values (@Name,@GameTypeId,@Image)`;
       const tLevelParams = [
         { name: "Name", value: pLevelName },
-        { name: "Image", value: pImagePath }
+        { name: "Image", value: pImagePath },
+        { name: "GameTypeId", value: pGameTypeId }
       ];
       const tPlayerLevelId = await DatabaseManager.ExecuteNonQuery(tLevelQuery, tLevelParams, transaction)
 
@@ -88,6 +98,37 @@ class ConfigurationImplementation {
     } catch (error) {
       LoggerService.Log(error);
       return null;
+    }
+  }
+
+  static async DeleteConfiguration(pId, pLevelId) {
+    try {
+      const transaction = await DatabaseManager.BeginTransaction();
+      const params = [{ name: "ID", value: pId }];
+      let tResult = await DatabaseManager.ExecuteNonQuery(
+        `DELETE FROM [Configuration] WHERE [ID] = @ID`,
+        params,
+        transaction
+      );
+      if (tResult == 0) {
+        const tLevelParams = [{ name: "ID", value: pLevelId }];
+        tResult = await DatabaseManager.ExecuteNonQuery(
+          `DELETE FROM [PlayerLevel] WHERE [ID] = @ID`,
+          tLevelParams,
+          transaction
+        );
+      } else {
+        await DatabaseManager.RollbackTransaction(transaction);
+      }
+      if (tResult == 0) {
+        await DatabaseManager.CommitTransaction(transaction);
+      } else {
+        await DatabaseManager.RollbackTransaction(transaction);
+      }
+      return tResult;
+    } catch (error) {
+      LoggerService.Log(error);
+      return Constant.ERROR;
     }
   }
 
@@ -178,7 +219,29 @@ class ConfigurationImplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const Level = tDateSet[index];
-          tLevels.push(new PlayerLevel(Level.ID, Level.Name, Level.Image));
+          tLevels.push(new PlayerLevel(Level.ID, Level.Name, Level.GameTypeId, Level.Image));
+        }
+      }
+      return tLevels;
+    } catch (error) {
+      LoggerService.Log(error);
+      return null;
+    }
+  }
+
+  static async GetAllPlayerLevelsByGameType(pGameTypeId) {
+    try {
+      const tLevels = [];
+      const params = [
+        { name: "GameTypeId", value: pGameTypeId },
+      ];
+      const tDateSet = await DatabaseManager.ExecuteQuery(
+        "SELECT * FROM [PlayerLevel] WHERE [GameTypeId] = @GameTypeId Order By [ID]", params
+      );
+      if (tDateSet) {
+        for (let index = 0; index < tDateSet.length; index++) {
+          const Level = tDateSet[index];
+          tLevels.push(new PlayerLevel(Level.ID, Level.Name, Level.GameTypeId, Level.Image));
         }
       }
       return tLevels;

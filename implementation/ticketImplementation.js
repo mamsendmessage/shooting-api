@@ -97,6 +97,34 @@ class Ticketmplementation {
   }
 
 
+  static async isAllLaneReadyForCompitionMode(pLanes) {
+    try {
+      const tTicketOnLane = [];
+      let tDateSet;
+      tDateSet = await DatabaseManager.ExecuteQuery(
+        `SELECT * FROM X_TicketForCompetition`,
+      );
+      if (tDateSet) {
+        for (let index = 0; index < tDateSet.length; index++) {
+          const tData = tDateSet[index];
+          tTicketOnLane.push({ laneId: tData.LaneId, Count: tData.Count });
+        }
+      }
+      for (let index = 0; index < pLanes.length; index++) {
+        const tElement = pLanes[index];
+        const tLane = tTicketOnLane.find((item) => item.laneId == tElement.ID && item.Count == 1);
+        if (!tLane) {
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      LoggerService.Log(error);
+      return undefined;
+    }
+  }
+
   static async GetTicketByLaneId(planeId, pAllStatuses) {
     try {
       const tPlayers = [];
@@ -118,7 +146,7 @@ class Ticketmplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tData = tDateSet[index];
-          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId,tData.LaneName, tData.LaneNumber, tData.CreationDate));
+          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId, tData.LaneName, tData.LaneNumber, tData.CreationDate));
         }
       }
       return tPlayers;
@@ -147,7 +175,7 @@ class Ticketmplementation {
       if (tDateSet) {
         for (let index = 0; index < tDateSet.length; index++) {
           const tData = tDateSet[index];
-          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId,tData.LaneName, tData.LaneNumber, tData.CreationDate));
+          tPlayers.push(new X_TodayPlayer(tData.UserId, tData.TicketId, tData.Photo, tData.Name, tData.GameType, tData.PlayerLevel, tData.State, tData.TicketType, tData.UserType, tData.LaneId, tData.LaneName, tData.LaneNumber, tData.CreationDate));
         }
       }
       return tPlayers;
@@ -207,7 +235,7 @@ class Ticketmplementation {
 
       //check numbers of waiting tickits 
       const AllTickets = await this.GetAllTickets();
-      const WatingTickets = AllTickets.filter((item) => item.State == 0 && item.LaneId == ticket.LaneId);
+      const WatingTickets = AllTickets.filter((item) => (item.State == 0) && item.LaneId == ticket.LaneId);
       const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
       if (WatingTickets.length > 0) {
         tTicket.State = 2;
@@ -215,12 +243,13 @@ class Ticketmplementation {
         tTicket.State = 0;
       }
       tTicket.UserId = tPlayer.ID;
-      tTicket.UserType = tFoundPlayer ? 2 : 1;
+      const tPlayerTickets = AllTickets.filter((item) => item.UserId == ticket.UserId);
+      tTicket.UserType = tPlayerTickets && tPlayerTickets.length > 0 ? 2 : 1;
       tTicket.TicketType = 1;
       const params = [
         { name: "UserId", value: tTicket.UserId },
         { name: "LaneId", value: tTicket.LaneId },
-        { name: "GameTypeId", value: tTicket.GameTypeId },
+        { name: "GameTypeId", value: tTicket.GameTypeId ? tTicket.GameTypeId : 'null' },
         { name: "PlayerLevelId", value: tTicket.PlayerLevelId },
         { name: "SessionTimeId", value: tTicket.SessionTimeId },
         { name: "State", value: tTicket.State },
@@ -262,19 +291,20 @@ class Ticketmplementation {
 
       //check numbers of waiting tickits 
       const AllTickets = await this.GetAllTickets();
-      const WatingTickets = AllTickets.filter((item) => item.State == 0 && item.LaneId == ticket.LaneId);
+      const WatingTickets = AllTickets.filter((item) => (item.State == 0) && item.LaneId == ticket.LaneId);
       const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, new Date(), new Date())
       if (WatingTickets.length > 0) {
         tTicket.State = 2;
       } else {
         tTicket.State = 0;
       }
-      tTicket.UserType = 1;
+      const tPlayerTickets = AllTickets.filter((item) => item.UserId == ticket.UserId);
+      tTicket.UserType = tPlayerTickets && tPlayerTickets.length > 0 ? 2 : 1;
       tTicket.TicketType = 1;
       const params = [
         { name: "UserId", value: tTicket.UserId },
         { name: "LaneId", value: tTicket.LaneId },
-        { name: "GameTypeId", value: tTicket.GameTypeId },
+        { name: "GameTypeId", value: tTicket.GameTypeId ? tTicket.GameTypeId : 'null' },
         { name: "PlayerLevelId", value: tTicket.PlayerLevelId },
         { name: "SessionTimeId", value: tTicket.SessionTimeId },
         { name: "State", value: tTicket.State },
@@ -373,8 +403,19 @@ class Ticketmplementation {
     }
   }
 
-  static async UpdateTicketState(ticket) {
+  static async UpdateTicketState(ticket, pLanes = []) {
     try {
+      let tInGameTickets;
+      if (ticket.PlayerLevelId != null) {
+        tInGameTickets = await this.GetTicketByState(1);
+        if (ticket.State == 1 && tInGameTickets.length > 0) {
+          tResult = -4;
+          return tResult;
+        }
+      }
+
+
+
       const tTicket = new Ticket(ticket.ID, ticket.UserId, ticket.LaneId, ticket.GameTypeId, ticket.PlayerLevelId, ticket.SessionTimeId, ticket.State, ticket.TicketType, ticket.UserType, ticket.CreationDate, new Date())
       const params = [
         { name: "State", value: tTicket.State },
@@ -386,12 +427,18 @@ class Ticketmplementation {
         params
       );
       if (tResult == 0) {
-
         let tTicketIndex = CacheService.cache.tickets.findIndex((item) => item.ID == tTicket.ID);
         CacheService.cache.tickets[tTicketIndex] = tTicket;
         if (tTicket.State == 1) {
           const tPlayerLevelId = tTicket.PlayerLevelId;
-          CommunicationService.startGame(ticket.LaneId, tPlayerLevelId, ticket.ID);
+          if (ticket.PlayerLevelId != null) {
+            CommunicationService.startGame(ticket.LaneId, tPlayerLevelId, ticket.ID);
+          } else {
+            if (await this.isAllLaneReadyForCompitionMode(pLanes)) {
+              await CommunicationService.startCompetitionGame();
+            }
+            // Check Compentetion Mode State
+          }
         } else if (tTicket.State == 3) {
           CommunicationService.DeleteLaneQueue(ticket.LaneId);
         } else if (tTicket.State == 6) {

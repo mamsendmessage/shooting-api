@@ -47,8 +47,17 @@ class CommonMethods {
     static SavePlayerDocument(pBase64Document) {
         try {
             if (pBase64Document && pBase64Document.length > 0) {
-                const tDocumentName = `documents/${uuidv4()}.pdf`;
-                var base64Data = pBase64Document.split(';')[1].replace(/^base64,/, "");
+                // Extract the MIME type from the Base64 string
+                const matches = pBase64Document.match(/^data:([A-Za-z-+\/]+);base64,/);
+                if (!matches || matches.length !== 2) {
+                    throw new Error('Invalid base64 string');
+                }
+    
+                const mimeType = matches[1];
+                const extension = mimeType.split('/')[1]; // Extract file extension from MIME type
+    
+                const tDocumentName = `documents/${uuidv4()}.${extension}`;
+                var base64Data = pBase64Document.replace(/^data:([A-Za-z-+\/]+);base64,/, "");
                 fs.writeFileSync(tDocumentName, base64Data, 'base64');
                 return tDocumentName;
             } else {

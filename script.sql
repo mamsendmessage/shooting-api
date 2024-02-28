@@ -265,10 +265,12 @@ GO
 
 
 
-CREATE TABLE [PlayerLevel] ( [ID] [bigint] Primary KEY IDENTITY(1,1) NOT NULL,[Name] [nvarchar] (max) NOT NULL,[Image] [nvarchar] (max) NOT NULL);
-INSERT INTO [PlayerLevel] VALUES ('Beginner','assets/img/pyallow.svg')
-INSERT INTO [PlayerLevel] VALUES ('Intermediate','assets/img/pblue.svg')
-INSERT INTO [PlayerLevel] VALUES ('Professional','assets/img/pgreen.svg')
+CREATE TABLE [PlayerLevel] ( [ID] [bigint] Primary KEY IDENTITY(1,1) NOT NULL,[Name] [nvarchar] (max) NOT NULL,[GameTypeId] [bigint] NOT NULL,[Image] [nvarchar] (max) NOT NULL
+	FOREIGN KEY (GameTypeId) REFERENCES GameType(ID),
+);
+INSERT INTO [PlayerLevel] VALUES ('Beginner',1,'assets/img/pyallow.svg')
+INSERT INTO [PlayerLevel] VALUES ('Intermediate',1,'assets/img/pblue.svg')
+INSERT INTO [PlayerLevel] VALUES ('Professional',1,'assets/img/pgreen.svg')
 
 GO
 
@@ -328,7 +330,7 @@ CREATE TABLE [dbo].[Player]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [N
 	)
 GO
 
-CREATE TABLE [dbo].[Ticket]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [UserId] [bigint] NOT NULL, [LaneId] [bigint] NOT NULL,[GameTypeId] [bigint] NOT NULL,[PlayerLevelId] [bigint] NOT NULL,
+CREATE TABLE [dbo].[Ticket]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [UserId] [bigint] NOT NULL, [LaneId] [bigint] NOT NULL,[GameTypeId] [bigint] NOT NULL,[PlayerLevelId] [bigint],
 	[SessionTimeId] [bigint] ,[State] [int] NOT NULL, [TicketType] [int] NOT NULL, [UserType] [int] NOT NULL, [CreationDate] [datetime] NOT NULL,[LastModificationDate] [datetime] NULL
 
 	FOREIGN KEY (UserId) REFERENCES [Player](ID),
@@ -354,7 +356,7 @@ CREATE VIEW [X_TodayPlayers] AS SELECT
 [Lane].[Name] As LaneName
 FROM Ticket
 JOIN [Player] ON [Ticket].UserId = [Player].[ID]
-JOIN [PlayerLevel] ON [PlayerLevel].[ID] = [Ticket].[PlayerLevelId]
+LEFT JOIN [PlayerLevel] ON [PlayerLevel].[ID] = [Ticket].[PlayerLevelId]
 JOIN [GameType] ON [Ticket].[GameTypeId] = [GameType].[ID]
 JOIN [Lane] ON [Lane].ID = [Ticket].[LaneId]
 WHERE CONVERT(varchar(10), [Ticket].[CreationDate], 102)  = CONVERT(varchar(10), getdate(), 102)
@@ -426,4 +428,9 @@ JOIN
     [Screen] ON [Permission].[ScreenId] = [Screen].[ID] 
 GROUP BY 
     [Role].[Name],[Role].[ID]
+GO
+
+CREATE VIEW X_TicketForCompetition AS SELECT 
+	[LaneId], Count(*) As [Count] FROM [ShootingAppDB].[dbo].[X_TodayPlayers] 
+	Where [State] = 1 and [PlayerLevel] is null Group by(LaneId) 
 GO

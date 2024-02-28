@@ -273,28 +273,24 @@ class Authenticationmplementation {
 
   static async CreateUser(pUser) {
     try {
-      try {
-        const tSalt = await bcrypt.genSalt(saltRounds);
-        pUser.Password = await bcrypt.hash(pUser.Password, tSalt);
-        const params = [
-          { name: "Name", value: pUser.Name },
-          { name: "Email", value: pUser.Email },
-          { name: "Password", value: pUser.Password },
-          { name: "MobileNumber", value: pUser.MobileNumber },
-          { name: "CreationDate", value: new Date() },
-          { name: "RoleId", value: pUser.RoleId },
-        ];
-        const tResult = await DatabaseManager.ExecuteNonQuery(
-          `INSERT INTO [User] ([Name] ,[Email],[Password],[MobileNumber],[CreationDate],[RoleId]) VALUES (@Name,@Email,@Password, @MobileNumber, @CreationDate,@RoleId)`,
-          params
-        );
-        return tResult;
-      } catch (error) {
-        LoggerService.Log(error);
-        return Constant.ERROR;
-      }
+      const tSalt = await bcrypt.genSalt(saltRounds);
+      pUser.Password = await bcrypt.hash(pUser.Password, tSalt);
+      const params = [
+        { name: "Name", value: pUser.Name },
+        { name: "Email", value: pUser.Email },
+        { name: "Password", value: pUser.Password },
+        { name: "MobileNumber", value: pUser.MobileNumber },
+        { name: "CreationDate", value: new Date() },
+        { name: "RoleId", value: pUser.RoleId },
+      ];
+      const tResult = await DatabaseManager.ExecuteNonQuery(
+        `INSERT INTO [User] ([Name] ,[Email],[Password],[MobileNumber],[CreationDate],[RoleId]) VALUES (@Name,@Email,@Password, @MobileNumber, @CreationDate,@RoleId)`,
+        params
+      );
+      return tResult;
     } catch (error) {
       LoggerService.Log(error);
+      return Constant.ERROR;
     }
   }
 

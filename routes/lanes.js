@@ -191,8 +191,14 @@ router.post("/nationalities", async (req, res, next) => {
 
 router.post("/levels", async (req, res, next) => {
   try {
+    let type = -1;
     let tLevels = [];
-    tLevels = await ConfigurationImplementation.GetAllPlayerLevels();
+    if (req.query.type && req.query.type > 0) {
+      type = req.query.type;
+      tLevels = await ConfigurationImplementation.GetAllPlayerLevelsByGameType(type);
+    } else {
+      tLevels = await ConfigurationImplementation.GetAllPlayerLevels();
+    }
     tLevels = tLevels && tLevels.length > 0 ? tLevels : null;
     if (tLevels) {
       res.status(200).json(Response.GetSuccessResponse(tLevels));
