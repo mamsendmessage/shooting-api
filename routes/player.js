@@ -59,11 +59,13 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.put("/:Id", async (req, res, next) => {
+router.post("/:Id", async (req, res, next) => {
   try {
-    let tPlayer = req.body;
-    tPlayer.ID = req.params.Id;
-    const tResult = await PlayerImp.UpdatePlayer(tPlayer);
+    let tPlayer = req.body.player;
+    let tIsNewPhoto = req.body.isNewPhoto;
+    let tIsNewDocument = req.body.isNewDocument;
+      tPlayer.ID = req.params.Id;
+    const tResult = await PlayerImp.UpdatePlayer(tPlayer, tIsNewPhoto, tIsNewDocument);
     if (tResult == 0) {
       res.status(200).json(Response.GetSuccessResponse(0));
     } else {

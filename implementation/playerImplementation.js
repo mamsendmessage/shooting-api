@@ -17,7 +17,7 @@ class PlayerImplementation {
       );
       for (let index = 0; index < tDateSet.length; index++) {
         const tPlayer = tDateSet[index];
-        tPlayers.push(new Player(tPlayer.ID, tPlayer.Name, tPlayer.NationalityId, tPlayer.Age, tPlayer.MobileNumber, tPlayer.Photo, tPlayer.CreationDate,tPlayer.Document,
+        tPlayers.push(new Player(tPlayer.ID, tPlayer.Name, tPlayer.NationalityId, tPlayer.Age, tPlayer.MobileNumber, tPlayer.Photo, tPlayer.CreationDate, tPlayer.Document,
           tPlayer.PassportsNo, tPlayer.MembershipNo, tPlayer.MembershipExpiry));
       }
       return tPlayers;
@@ -118,16 +118,25 @@ class PlayerImplementation {
     }
   }
 
-  static async UpdatePlayer(player) {
+  static async UpdatePlayer(player, isNewImage, isNewDocumnet) {
     try {
-      const tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, player.CreationDate);
-      const params = [
+      if (isNewImage) {
+        player.Photo = CommonMethods.SavePlayerImage(player.Photo);
+      }
+      if (isNewDocumnet) {
+        player.Document = CommonMethods.SavePlayerDocument(player.Document);
+      }
+      const tPlayer = new Player(player.ID, player.Name, player.NationalityId, player.Age, player.MobileNumber, player.Photo, new Date(), player.Document,
+        player.PassportsNo, player.MembershipNo, player.MembershipExpiry);
+      const tPlayerarams = [
+        { name: "ID", value: tPlayer.ID },
         { name: "Name", value: tPlayer.Name },
         { name: "NationalityId", value: tPlayer.NationalityId },
         { name: "Age", value: tPlayer.Age },
         { name: "MobileNumber", value: tPlayer.MobileNumber },
         { name: "Photo", value: tPlayer.Photo },
-        { name: "ID", value: tPlayer.ID },
+        { name: "Document", value: tPlayer.Document },
+        { name: "CreationDate", value: tPlayer.CreationDate, isDate: true },
         { name: "PassportsNo", value: tPlayer.PassportsNo },
         { name: "MembershipNo", value: tPlayer.MembershipNo },
         { name: "MembershipExpiry", value: new Date(tPlayer.MembershipExpiry), isDate: true },
@@ -135,8 +144,8 @@ class PlayerImplementation {
 
       const tResult = await DatabaseManager.ExecuteNonQuery(
         `UPDATE [Player] SET [Name] = @Name, [NationalityId] = @NationalityId,
-        [Age] = @Age, [MobileNumber] = @MobileNumber, [Photo] = @Photo,[PassportsNo]=@PassportsNo,[MembershipNo]=@MembershipNo,[MembershipExpiry]=@MembershipExpiry  WHERE [ID] = @ID`,
-        params
+        [Age] = @Age, [MobileNumber] = @MobileNumber, [Photo] = @Photo, [Document] = @Document, [PassportsNo]=@PassportsNo,[MembershipNo]=@MembershipNo,[MembershipExpiry]=@MembershipExpiry  WHERE [ID] = @ID`,
+        tPlayerarams
       );
       if (tResult == 0) {
         let tPlayerIndex = CacheService.cache.players.findIndex((item) => item.ID == tPlayer.ID);
