@@ -243,7 +243,7 @@ class Ticketmplementation {
         tTicket.State = 0;
       }
       tTicket.UserId = tPlayer.ID;
-      const tPlayerTickets = AllTickets.filter((item) => item.UserId == ticket.UserId);
+      const tPlayerTickets = AllTickets.filter((item) => item.UserId == tTicket.UserId);
       tTicket.UserType = tPlayerTickets && tPlayerTickets.length > 0 ? 2 : 1;
       tTicket.TicketType = 1;
       const params = [
