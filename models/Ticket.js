@@ -1,7 +1,8 @@
+const CommonMethods = require("./CommonMethods");
 const { toDateFromDB } = require("./CommonMethods");
 
 class Ticket {
-    constructor(ID, UserId, LaneId, GameTypeId, PlayerLevelId, SessionTimeId, State, TicketType, UserType, CreationDate, LastModificationDate) {
+    constructor(ID, UserId, LaneId, GameTypeId, PlayerLevelId, SessionTimeId, State, TicketType, UserType, CreationDate, LastModificationDate, GamePeriod) {
         this.ID = ID;
         this.UserId = UserId;
         this.LaneId = LaneId;
@@ -11,8 +12,9 @@ class Ticket {
         this.State = State;
         this.TicketType = TicketType;
         this.UserType = UserType;
-        this.CreationDate = toDateFromDB(CreationDate);
-        this.LastModificationDate = toDateFromDB(LastModificationDate);
+        this.CreationDate = CreationDate;
+        this.LastModificationDate = LastModificationDate;
+        this.GamePeriod = GamePeriod;
     }
 }
 module.exports = Ticket;

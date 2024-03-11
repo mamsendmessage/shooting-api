@@ -25,5 +25,12 @@ class Queue {
             return "The Queue is empty!";
         }
     }
+    isLastItem() {
+        return this.elements.length == 1;
+    }
+
+    getRemainingItems() {
+        return this.elements;
+    }
 }
 module.exports = Queue;

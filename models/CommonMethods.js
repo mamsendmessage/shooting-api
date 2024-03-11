@@ -1,7 +1,24 @@
 const fs = require("fs");
 const { v4: uuidv4, } = require('uuid');
+const moment = require('moment');
 const LoggerService = require("../services/LoggerService");
+Date.prototype.toJSON = function() {
+    return moment(this).format('YYYY-MM-DD HH:mm:ss');
+};
+
 class CommonMethods {
+
+    static getCurrentDateTimeForDB() {
+        const currentDate = new Date();
+        return currentDate.toISOString(); // Convert to UTC string format
+    }
+
+    static  convertDBDateTimeToLocal(dateTimeFromDB) {
+        const dbDate = new Date(dateTimeFromDB);
+        const localDate = new Date(dbDate.toLocaleString("en-US", { timeZone: "Your_Local_Timezone" }));
+        return localDate; // Local timezone date/time
+    }
+
     static toDateFromDB(CreationDate) {
         let t_date = null;
         if (CreationDate !== null && CreationDate !== undefined) {
@@ -25,6 +42,11 @@ class CommonMethods {
         return false;
     }
 
+
+
+    static getNowDate() {
+        return  new Date()
+    }
 
     static SavePlayerImage(pBase64Image) {
         try {

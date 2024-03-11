@@ -331,8 +331,7 @@ CREATE TABLE [dbo].[Player]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [N
 GO
 
 CREATE TABLE [dbo].[Ticket]([ID] [bigint] Primary Key IDENTITY(1,1) NOT NULL, [UserId] [bigint] NOT NULL, [LaneId] [bigint] NOT NULL,[GameTypeId] [bigint] NOT NULL,[PlayerLevelId] [bigint],
-	[SessionTimeId] [bigint] ,[State] [int] NOT NULL, [TicketType] [int] NOT NULL, [UserType] [int] NOT NULL, [CreationDate] [datetime] NOT NULL,[LastModificationDate] [datetime] NULL
-
+	[SessionTimeId] [bigint] ,[State] [int] NOT NULL, [TicketType] [int] NOT NULL, [UserType] [int] NOT NULL, [CreationDate] [datetime] NOT NULL,[LastModificationDate] [datetime] NULL,[GamePeriod] [bigint] NULL
 	FOREIGN KEY (UserId) REFERENCES [Player](ID),
 	FOREIGN KEY (LaneId) REFERENCES Lane(ID),
 	FOREIGN KEY (GameTypeId) REFERENCES GameType(ID),

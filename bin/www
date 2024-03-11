@@ -12,6 +12,7 @@ const Constant = require("../models/Constant");
 const ConfigurationService = require("../services/ConfigurationService");
 const socket = require('socket.io');
 const CommunicationService = require("../implementation/communicationService");
+const CommonMethods = require("../models/CommonMethods");
 /**
  * Get port from environment and store in Express.
  */
