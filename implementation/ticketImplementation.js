@@ -377,15 +377,11 @@ class Ticketmplementation {
         params
       );
       if (tResult == 0) {
-
         let tTicketIndex = CacheService.cache.tickets.findIndex((item) => item.ID == pTicketId);
         CacheService.cache.tickets[tTicketIndex].State = 3;
         CacheService.cache.tickets[tTicketIndex].LastModificationDate = tNow;
       }
       return tResult;
-      if (tResult == 0) {
-        CommunicationService.ResumeLaneQueue();
-      }
     } catch (error) {
       LoggerService.Log(error);
       return Constant.ERROR;
@@ -403,11 +399,7 @@ class Ticketmplementation {
           return tResult;
         }
       }
-      let tEnableUpdateLastModificationTime = true;
       const tTicketBefore = await this.GetTicketByID(ticket.ID);
-      if (tTicketBefore && tTicketBefore.State == 6) {
-        tEnableUpdateLastModificationTime = false;
-      }
       let tGamePeriod = await CommunicationService.getTotalGameTime(tTicketBefore.PlayerLevelId);
       if (ticket.State == 6 || tTicketBefore.State == 6) {
         tGamePeriod = await CommunicationService.getRemainingGameTime(tTicketBefore.PlayerLevelId, tTicketBefore.LaneId);
@@ -428,17 +420,22 @@ class Ticketmplementation {
         let tTicketIndex = CacheService.cache.tickets.findIndex((item) => item.ID == tTicket.ID);
         CacheService.cache.tickets[tTicketIndex] = tTicket;
         if (tTicket.State == 1) {
-          const tPlayerLevelId = tTicket.PlayerLevelId;
-          if (ticket.PlayerLevelId != null) {
-            CommunicationService.startGame(ticket.LaneId, tPlayerLevelId, ticket.ID);
+          if (tTicketBefore.State == 6) {
+            CommunicationService.ResumeLaneQueue(ticket.LaneId)
           } else {
-            if (await this.isAllLaneReadyForCompitionMode(pLanes)) {
-              await CommunicationService.startCompetitionGame();
+            const tPlayerLevelId = tTicket.PlayerLevelId;
+            if (ticket.PlayerLevelId != null) {
+              CommunicationService.startGame(ticket.LaneId, tPlayerLevelId, ticket.ID, tGamePeriod);
+            } else {
+              if (await this.isAllLaneReadyForCompitionMode(pLanes)) {
+                await CommunicationService.startCompetitionGame();
+              }
             }
-            // Check Compentetion Mode State
           }
         } else if (tTicket.State == 3) {
           CommunicationService.DeleteLaneQueue(ticket.LaneId);
+          CommunicationService.forceFinish(ticket.LaneId)
+
         } else if (tTicket.State == 6) {
           CommunicationService.PauseLaneQueue(ticket.LaneId);
         }

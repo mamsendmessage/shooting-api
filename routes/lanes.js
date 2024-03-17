@@ -149,7 +149,7 @@ router.post("/updateState", async (req, res, next) => {
     if (tResult == 0) {
       res.status(200).json(Response.GetSuccessResponse(0));
     } else {
-      res.status(200).json(Response.GetErrorResponse(-1));
+      res.status(200).json(Response.GetErrorResponse(tResult));
     }
   } catch (error) {
     LoggerService.Log(error);

@@ -2,7 +2,7 @@ const fs = require("fs");
 const { v4: uuidv4, } = require('uuid');
 const moment = require('moment');
 const LoggerService = require("../services/LoggerService");
-Date.prototype.toJSON = function() {
+Date.prototype.toJSON = function () {
     return moment(this).format('YYYY-MM-DD HH:mm:ss');
 };
 
@@ -13,7 +13,7 @@ class CommonMethods {
         return currentDate.toISOString(); // Convert to UTC string format
     }
 
-    static  convertDBDateTimeToLocal(dateTimeFromDB) {
+    static convertDBDateTimeToLocal(dateTimeFromDB) {
         const dbDate = new Date(dateTimeFromDB);
         const localDate = new Date(dbDate.toLocaleString("en-US", { timeZone: "Your_Local_Timezone" }));
         return localDate; // Local timezone date/time
@@ -45,7 +45,7 @@ class CommonMethods {
 
 
     static getNowDate() {
-        return  new Date()
+        return new Date()
     }
 
     static SavePlayerImage(pBase64Image) {
@@ -74,11 +74,11 @@ class CommonMethods {
                 if (!matches || matches.length !== 2) {
                     throw new Error('Invalid base64 string');
                 }
-    
+
                 const mimeType = matches[1];
                 const extension = mimeType.split('/')[1]; // Extract file extension from MIME type
-    
-                const tDocumentName = `documents/${uuidv4()}.${extension}`;
+
+                const tDocumentName = `documents/${uuidv4()}.${extension == 'plain' ? 'txt' : extension}`;
                 var base64Data = pBase64Document.replace(/^data:([A-Za-z-+\/]+);base64,/, "");
                 fs.writeFileSync(tDocumentName, base64Data, 'base64');
                 return tDocumentName;

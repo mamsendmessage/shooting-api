@@ -4,29 +4,29 @@ class Queue {
     }
 
     enqueue(node) {
-        this.elements.push(node);
+        this.elements?.push(node);
     }
 
     dequeue() {
         if (this.elements.length > 0) {
-            return this.elements.shift();
+            return this.elements?.shift();
         } else {
             return undefined;
         }
     }
     isEmpty() {
-        return this.elements.length == 0;
+        return this.elements?.length == 0;
     }
 
     front() {
-        if (this.elements.length > 0) {
+        if (this.elements?.length > 0) {
             return this.elements[0];
         } else {
             return "The Queue is empty!";
         }
     }
     isLastItem() {
-        return this.elements.length == 1;
+        return this.elements?.length == 1;
     }
 
     getRemainingItems() {

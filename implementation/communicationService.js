@@ -2,6 +2,7 @@ const axios = require('axios');
 const socket = require('socket.io');
 const ConfigurationImplementation = require('./configurationImplementation');
 const Queue = require('../models/Queue');
+const LoggerService = require('../services/LoggerService');
 class CommunicationService {
     static lanesQueues = [];
     constructor() {
@@ -39,19 +40,33 @@ class CommunicationService {
     static PauseLaneQueue(pLaneId) {
         const tLane = this.lanesQueues.find((item) => item.ID == pLaneId);
         tLane.state = -1;
+        this.SocketIO.sockets.emit('PauseTicket', { laneId: pLaneId });
 
     }
 
     static ResumeLaneQueue(pLaneId) {
         const tLane = this.lanesQueues.find((item) => item.ID == pLaneId);
         tLane.state = 1;
+        this.SocketIO.sockets.emit('ResumeTicket', { laneId: pLaneId });
+    }
 
+    static forceFinish(pLaneId) {
+        try {
+            this.SocketIO.sockets.emit('ForceFinishTicket', { laneId: pLaneId });
+        } catch (error) {
+            LoggerService.Log(error);
+        }
     }
 
     static async httpGet(pUrl) {
         try {
-            console.log('Call API at ' + new Date().toTimeString());
-            const response = await axios.get(pUrl);
+            pUrl = '';
+            if (pUrl && pUrl.length > 0) {
+                console.log('Call API at ' + new Date().toTimeString());
+                const response = await axios.get(pUrl);
+            } else {
+                console.log('No API called ' + new Date().toTimeString());
+            }
         } catch (error) {
             console.error('API call failed:', error);
         }
@@ -172,7 +187,7 @@ class CommunicationService {
         }
     }
 
-    static async startGame(pLaneId, pLevelId, pTicketId) {
+    static async startGame(pLaneId, pLevelId, pTicketId, pGamePeriod) {
         const tConfig = await ConfigurationImplementation.GetAllConfigurationByType(pLevelId);
         let tSkeets = [];
         const tParsedConfig = JSON.parse(tConfig.Config);
@@ -185,7 +200,9 @@ class CommunicationService {
             tSkeets = tSkeets.concat(tParsedConfig.Skeets);
         }
         this.AddLaneQueue(pLaneId, tSkeets, pTicketId);
+        this.SocketIO.sockets.emit('TimeToFinish', { laneId: pLaneId, timer: pGamePeriod });
         let callCount = 0;
+
         setTimeout(async () => {
             this.callAPI(callCount, tConfig.TimePerShot, tConfig.TimeToRefill, pLaneId)
         });
